@@ -3,7 +3,15 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
+// Configuration Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,19 +43,8 @@ if (isProd) {
   app.use(express.static(path.join(__dirname, '../dist')));
 }
 
-// Configuration Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Sur Vercel, le système de fichiers est en lecture seule, sauf /tmp.
-    // Attention: les fichiers dans /tmp sont supprimés rapidement.
-    const dest = process.env.VERCEL ? '/tmp' : 'uploads/';
-    cb(null, dest);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configuration Multer — stockage en mémoire pour Cloudinary
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Connexion MongoDB
@@ -302,13 +299,26 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// Upload image
-app.post('/api/upload', upload.single('image'), (req, res) => {
+// Upload image vers Cloudinary
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'Aucun fichier téléchargé' });
   }
-  const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
-  res.json({ success: true, url: imageUrl });
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'portfolio' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+    res.json({ success: true, url: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Projets
