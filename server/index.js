@@ -47,15 +47,38 @@ if (isProd) {
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Connexion MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(async () => {
-    console.log('Connecté à MongoDB Atlas');
-    // NE PAS DÉCOMMENTER LA LIGNE CI-DESSOUS EN PRODUCTION OU EN DÉVELOPPEMENT COURANT
-    // Sinon, la base de données sera écrasée à chaque redémarrage du serveur !
-    // await seedDatabase();
-  })
-  .catch(err => console.error('Erreur de connexion MongoDB:', err));
+// Optimisation de la connexion MongoDB pour l'environnement Serverless (Vercel)
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI).then(mongoose => mongoose);
+  }
+  cached.conn = await cached.promise;
+  console.log('Connecté à MongoDB Atlas (Serverless)');
+  return cached.conn;
+}
+
+// Middleware global pour s'assurer que la DB est connectée à chaque requête
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error('Erreur de connexion MongoDB:', error);
+    }
+  }
+  next();
+});
+
+// Route pour réveiller le serveur (utile pour UptimeRobot)
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({ message: 'Pong! Server is awake.' });
+});
 
 // --- SCHEMAS ---
 const projetSchema = new mongoose.Schema({
