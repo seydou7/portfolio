@@ -1,0 +1,43 @@
+# Seydou Diallo — Portfolio
+
+## Qui suis-je ?
+Seydou Diallo est un UX/UI Designer et Développeur Front-end dans le milieu professionnel depuis 2018, basé à Dakar, Sénégal, disponible en full remote.
+
+## Contact
+- Email: seydoukellel@gmail.com
+- Téléphone: +221 77 493 10 84
+- LinkedIn: https://www.linkedin.com/in/seydou-diallo-front-end-developpeur-designer-ux-ui/
+- Localisation: Dakar, Sénégal (Full Remote)
+
+## Compétences principales
+- **Design**: UX Design, UI Design, Product Design, Figma, Wireframing, Prototypage, Design System, Recherche Utilisateur
+- **Développement**: Angular, React, Laravel, JavaScript, HTML/CSS, Sass, Bootstrap
+- **Méthodes**: Agile, Design Thinking, UX Research, User Testing
+
+## Expériences professionnelles
+- **Agile Way International** (2024–Présent) — UX/UI Designer & Intégrateur Front-end, Pays-Bas
+- **Livelearn** (2021–Fév. 2025) — Lead UX/UI Designer & Front-end, Pays-Bas
+- **CORAF** (Avr. 2023–Avr. 2024) — UX/UI Designer & Front-end, Sénégal
+- **Anugo Canada** (2021–2022) — UI Designer & Intégrateur Web, Canada
+- **YUX Design** (Fév. 2019–Fév. 2021) — UX/UI Designer & Front-end, Sénégal
+- **Missions Internationales** (Juil. 2019–Présent) — UX/UI Designer & Front-end Indépendant
+
+## Projets réalisés
+- CORAF — Site institutionnel + Dashboard admin (Laravel, Bootstrap, JS) — Sénégal
+- CETUD — Web App Dashboard multi-rôles (Angular, Figma) — Sénégal
+- LiveLearn — Application mobile e-learning (Angular, Figma) — Pays-Bas
+- Gestion Immobilière — Site web + Dashboards (Figma, Angular) — Sénégal
+- Ovindi — Landing page + E-commerce agroalimentaire (Figma) — USA
+- Tonidéme — Application mobile fintech, cotisation/tontine (Figma) — Mali
+- PFANE — Plateforme des acteurs non étatiques (Figma) — Sénégal
+- Wutiko — Site + Dashboard professionnel (Figma, Angular) — Sénégal
+- Scinbcorp — Site corporate IT (Figma) — France
+- ef2tk-renov — Site vitrine design intérieur & rénovation (Figma) — France
+- Looka — Web App market research YUX Design (Angular, Figma) — Afrique
+
+## Secteurs d'activité
+Agriculture & ONG, E-learning, Fintech, Immobilier, E-commerce, Mobilité urbaine, Recrutement, Santé, SaaS Logistique
+
+## À propos de ce site
+Ce portfolio a été conçu et développé par Seydou Diallo lui-même.
+Technologies utilisées: React, Vite, Node.js, Express, MongoDB Atlas.

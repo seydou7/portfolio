@@ -1,0 +1,230 @@
+/* Main Layout */
+.page-parcours-editorial {
+  padding-bottom: var(--space-32);
+  background-color: var(--color-bg);
+  min-height: 100vh;
+}
+
+.parcours-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+/* Bloc Pays */
+.countries-block {
+  margin-bottom: var(--space-20);
+  padding: var(--space-6);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.countries-list {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.country-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-secondary);
+  transition: all var(--transition-base);
+}
+
+.country-item:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.country-flag {
+  font-size: 1.2rem;
+}
+
+/* Timeline Section Headers */
+.timeline-section {
+  margin-bottom: var(--space-32);
+}
+
+.timeline-section__header {
+  text-align: center;
+  margin-bottom: var(--space-20);
+}
+
+.timeline-section__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-style: italic;
+  color: var(--color-primary);
+  margin-top: var(--space-4);
+}
+
+/* Timeline Core Structure */
+.timeline-wrapper {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-10) 0;
+}
+
+.timeline-center-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background-color: rgba(202, 138, 4, 0.3); /* Subtle gold line */
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Timeline Blocks */
+.timeline-block {
+  position: relative;
+  width: 50%;
+  margin-bottom: var(--space-24);
+  z-index: 2;
+}
+
+.timeline-block:last-child {
+  margin-bottom: 0;
+}
+
+/* Left Side Items */
+.timeline-block--left {
+  left: 0;
+  text-align: right;
+  padding-right: var(--space-16);
+}
+
+/* Right Side Items */
+.timeline-block--right {
+  left: 50%;
+  text-align: left;
+  padding-left: var(--space-16);
+}
+
+/* Timeline Dots */
+.timeline-dot {
+  position: absolute;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-gold);
+  transform: rotate(45deg);
+}
+
+.timeline-block--left .timeline-dot {
+  right: -4px; /* Center on line */
+}
+
+.timeline-block--right .timeline-dot {
+  left: -4px; /* Center on line */
+}
+
+/* Timeline Content Styling */
+.timeline-date {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: var(--space-3);
+}
+
+.timeline-company {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-style: italic;
+  color: var(--color-primary);
+  line-height: 1.2;
+  margin-bottom: var(--space-3);
+}
+
+.timeline-role {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: var(--space-6);
+}
+
+.timeline-desc {
+  font-size: var(--fs-sm);
+  color: var(--color-secondary);
+  line-height: 1.7;
+}
+
+/* Left/Right specific overrides */
+.timeline-block--left .timeline-content {
+  margin-left: auto;
+}
+
+/* Scroll Reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive Tablet & Mobile */
+@media (max-width: 900px) {
+  .timeline-wrapper {
+    padding-left: var(--space-6);
+  }
+
+  .timeline-center-line {
+    left: 0;
+    transform: none;
+  }
+
+  .timeline-block {
+    width: 100%;
+    margin-bottom: var(--space-16);
+  }
+
+  /* Force everything to the right side of the line */
+  .timeline-block--left,
+  .timeline-block--right {
+    left: 0;
+    text-align: left;
+    padding-left: var(--space-10);
+    padding-right: 0;
+  }
+
+  .timeline-block--left .timeline-dot,
+  .timeline-block--right .timeline-dot {
+    left: -4px;
+    right: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-section__title {
+    font-size: 1.8rem;
+  }
+  
+  .timeline-company {
+    font-size: 1.5rem;
+  }
+}

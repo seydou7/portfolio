@@ -1,0 +1,8 @@
+# Application principale
+app = index.js
+
+# Commande de démarrage en production
+start_command = node index.js
+
+# Port (Hostinger injecte $PORT automatiquement)
+port = 5000

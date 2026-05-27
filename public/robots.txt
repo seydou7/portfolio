@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Pages importantes à indexer en priorité
+Allow: /realisations
+Allow: /parcours
+Allow: /contact
+
+# Ne pas indexer le back-office
+Disallow: /admin
+Disallow: /login
+
+# Sitemap
+Sitemap: https://seydoudiallo.com/sitemap.xml
+
+# Crawl delay (bonne pratique)
+Crawl-delay: 1
