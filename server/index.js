@@ -95,6 +95,7 @@ const projetSchema = new mongoose.Schema({
   contexte: String,
   role: String,
   cover: String,
+  showInHome: { type: Boolean, default: false },
   order: Number
 });
 
@@ -133,7 +134,8 @@ async function seedDatabase() {
       description: 'Refonte complète du site institutionnel CORAF et de son dashboard administratif responsive.',
       contexte: 'Le CORAF avait besoin de moderniser sa présence en ligne et de simplifier la gestion de ses publications scientifiques et actualités via un tableau de bord intuitif.',
       role: 'Lead UX/UI Designer & Intégrateur Front-end',
-      cover: '/portfolio_project_mockup.png'
+      cover: '/portfolio_project_mockup.png',
+      showInHome: true
     },
     {
       id: 'cetud',
@@ -146,7 +148,8 @@ async function seedDatabase() {
       description: 'Application web avec dashboard multi-rôles (Responsable, Agent, Comité) pour la gestion des transports.',
       contexte: 'Optimisation des processus de validation et de suivi pour les agents de transport et le comité de direction.',
       role: 'Product Designer',
-      cover: '/portfolio_project_mockup.png'
+      cover: '/portfolio_project_mockup.png',
+      showInHome: true
     },
     {
       id: 'livelearn',
@@ -160,7 +163,8 @@ async function seedDatabase() {
       description: 'Plateforme e-learning complète : cours, blog, podcast — conçue pour le marché néerlandais.',
       contexte: 'Création from scratch d\'une plateforme éducative à destination d\'un large public néerlandophone.',
       role: 'Lead UX/UI Designer',
-      cover: '/portfolio_project_mockup.png'
+      cover: '/portfolio_project_mockup.png',
+      showInHome: true
     },
     {
       id: 'gestion-immo',

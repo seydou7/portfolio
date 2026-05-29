@@ -1,8 +1,18 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, MapPin } from 'lucide-react'
+import { ArrowRight, MapPin, ArrowUpRight, Globe, Smartphone, LayoutDashboard, Code, Monitor } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { projets as staticProjets } from '../data/projets'
+import { translateArray } from '../i18n/autoTranslate'
+import API_URL from '../config/api'
 import './Accueil.css'
+
+const categoryIcon = {
+  web:       <Globe size={14} />,
+  mobile:    <Smartphone size={14} />,
+  dashboard: <LayoutDashboard size={14} />,
+  dev:       <Code size={14} />,
+}
 
 /* ---- Hero Name Animation ---- */
 function AnimatedName({ name }) {
@@ -18,6 +28,20 @@ function AnimatedName({ name }) {
         </span>
       ))}
     </span>
+  )
+}
+
+/* ---- Marquee Component ---- */
+function Marquee() {
+  return (
+    <div className="marquee-container">
+      <div className="marquee-content">
+        <span>UX/UI DESIGNER ✦ FRONT-END DEVELOPER ✦ FREELANCE ✦ </span>
+        <span>UX/UI DESIGNER ✦ FRONT-END DEVELOPER ✦ FREELANCE ✦ </span>
+        <span>UX/UI DESIGNER ✦ FRONT-END DEVELOPER ✦ FREELANCE ✦ </span>
+        <span>UX/UI DESIGNER ✦ FRONT-END DEVELOPER ✦ FREELANCE ✦ </span>
+      </div>
+    </div>
   )
 }
 
@@ -41,13 +65,68 @@ function useScrollReveal(selector) {
 /* ---- Page ---- */
 export default function Accueil() {
   useScrollReveal('.reveal')
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const [projetsHome, setProjetsHome] = useState([])
+  const [translatedProjets, setTranslatedProjets] = useState([])
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/projets`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const homeProj = data.filter(p => p.showInHome)
+          if (homeProj.length > 0) {
+            setProjetsHome(homeProj)
+          } else {
+            setProjetsHome(data.slice(0, 3)) // Fallback if none selected
+          }
+        } else {
+          setProjetsHome(staticProjets.slice(0, 3))
+        }
+      })
+      .catch(err => {
+        console.error('Erreur lors du chargement des projets:', err)
+        setProjetsHome(staticProjets.filter(p => p.showInHome).slice(0,3))
+      })
+  }, [])
+
+  // Auto-traduire
+  useEffect(() => {
+    if (projetsHome.length === 0) return
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
+    translateArray(projetsHome, ['description', 'type'], lang)
+      .then(setTranslatedProjets)
+  }, [projetsHome, i18n.language])
+
+  const displayedProjets = translatedProjets.length > 0 ? translatedProjets : projetsHome
+
+  // Re-observe reveal elements after projects are loaded
+  useEffect(() => {
+    if (displayedProjets.length === 0) return
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('revealed')
+          observer.unobserve(e.target)
+        }
+      }),
+      { threshold: 0.08 }
+    )
+    const timer = setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.revealed)').forEach(el => observer.observe(el))
+    }, 100)
+    return () => {
+      observer.disconnect()
+      clearTimeout(timer)
+    }
+  }, [displayedProjets])
 
   return (
     <>
-      {/* ===== HERO ===== */}
+      {/* ===== HERO V2 (Immersive) ===== */}
       <section className="hero" id="hero">
         <div className="hero__bg-ornament" aria-hidden="true" />
+        <div className="hero__bg-blob" aria-hidden="true" />
 
         <div className="container hero__content">
           {/* Localisation badge */}
@@ -67,67 +146,140 @@ export default function Accueil() {
             <span className="hero__title-plus">{t('hero.devTitle')}</span>
           </p>
 
+          {/* Badges Glassmorphism */}
+          <div className="hero__badges animate-fade-up" style={{ animationDelay: '0.9s' }}>
+            <span className="hero__badge">Figma</span>
+            <span className="hero__badge">React</span>
+            <span className="hero__badge">UI/UX</span>
+            <span className="hero__badge">Front-end</span>
+          </div>
+
           {/* CTA */}
           <div className="hero__ctas animate-fade-up" style={{ animationDelay: '1s' }}>
             <Link to="/realisations" className="btn btn-primary hero__cta-main">
               {t('hero.cta')}
               <ArrowRight size={16} />
             </Link>
-            <Link to="/contact" className="btn btn-outline">
+            <Link to="/contact" className="btn btn-outline glass-btn">
               {t('hero.ctaSecondary')}
             </Link>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="hero__scroll-indicator" aria-hidden="true">
-          <span className="hero__scroll-line" />
-          <span className="hero__scroll-text">Scroll</span>
+        {/* Marquee en bas du hero */}
+        <div className="hero__marquee-wrapper animate-fade-in" style={{ animationDelay: '1.2s' }}>
+          <Marquee />
         </div>
       </section>
 
-      {/* ===== QUOTE (Image 3) ===== */}
-      <section className="section quote-section reveal">
-        <div className="container text-center">
-          <blockquote className="quote-text">
-            {t('quote.text')}
-          </blockquote>
-          <span className="quote-author">{t('quote.author')}</span>
-        </div>
-      </section>
-
-      {/* ===== ABOUT (Image 4) ===== */}
-      <section className="section about-split reveal" id="a-propos">
+      {/* ===== BENTO GRID (About + Stats + Sectors) ===== */}
+      <section className="section bento-section reveal" id="a-propos">
         <div className="container">
-          <div className="about-grid">
-            <div className="about-image-wrapper">
-              <img src="/about-workspace.png" alt="Espace de travail design et code" className="about-img" />
-            </div>
-            <div className="about-content">
+          <div className="bento-grid">
+            
+            {/* Box 1: Bio */}
+            <div className="bento-box bento-bio">
               <span className="section-label">{t('about.label')}</span>
-              <h2 className="about-title">
-                {t('about.title')}
-              </h2>
-              <div className="about-desc">
+              <h2 className="bento-title">{t('about.title')}</h2>
+              <div className="bento-desc">
                 <p>{t('about.bio1')}</p>
                 <p>{t('about.bio2')}</p>
               </div>
-              <div className="about-footer">
-                DAKAR · FULL REMOTE · {t('contact.availabilityValue').toUpperCase()}
+            </div>
+
+            {/* Box 2: Location Map */}
+            <div className="bento-box bento-location">
+              <div className="bento-location-inner">
+                <MapPin size={32} className="text-gold mb-2"/>
+                <h3>Dakar, SN</h3>
+                <p>Full Remote</p>
+                <div className="pulsing-dot"></div>
               </div>
             </div>
+
+            {/* Box 3: Stats */}
+            <div className="bento-box bento-stats">
+              <div className="stat-item">
+                <span className="stat-num">6+</span>
+                <span className="stat-label">{t('about.stat1Label')}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-num">15+</span>
+                <span className="stat-label">{t('about.stat2Label')}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-num">5</span>
+                <span className="stat-label">{t('about.stat3Label')}</span>
+              </div>
+            </div>
+
+            {/* Box 4: Sectors Cloud */}
+            <div className="bento-box bento-sectors">
+              <span className="section-label">{t('sectors.label')}</span>
+              <div className="sectors-cloud">
+                {t('sectors.list', { returnObjects: true }).map((sector, idx) => (
+                  <span key={idx} className="bento-tag">{sector}</span>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ===== SECTORS (Image 2) ===== */}
-      <section className="section sectors-section reveal">
-        <div className="container text-center">
-          <span className="section-label">{t('sectors.label')}</span>
-          <h2 className="sectors-title">{t('sectors.title')}</h2>
-          <div className="sectors-list">
-            {t('sectors.list', { returnObjects: true }).map((sector, idx) => (
-              <span key={idx}>{sector}</span>
+      {/* ===== FEATURED PROJECTS (Hybrid Layout) ===== */}
+      <section className="section featured-projects reveal" id="featured">
+        <div className="container">
+          <div className="section-header-flex">
+            <div>
+              <span className="section-label">{t('realisations.label')}</span>
+              <h2 className="section-title-large">{t('realisations.featuredTitle')}</h2>
+            </div>
+            <Link to="/realisations" className="btn btn-outline featured-btn">
+              {t('realisations.featuredViewAll')}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+          
+          <div className="featured-grid">
+            {displayedProjets.map((projet, i) => (
+              <Link to={`/projet/${projet.id}`} key={projet.id} className="projet-card tilt-effect reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
+                {/* Image Cover */}
+                <div className="projet-card__img-wrap-home">
+                  <img src={projet.cover} alt={projet.nom} className="projet-card__img-home" />
+                </div>
+
+                {/* Header carte */}
+                <div className="projet-card__header">
+                  <div className="projet-card__icon" aria-hidden="true">
+                    {categoryIcon[projet.categorie] || <Monitor size={20} />}
+                  </div>
+                  <span className="projet-card__pays">{projet.pays}</span>
+                </div>
+
+                {/* Content */}
+                <div className="projet-card__body">
+                  <h2 className="projet-card__nom">{projet.nom}</h2>
+                  <p className="projet-card__type">{projet.type}</p>
+                  <p className="projet-card__desc">{projet.description}</p>
+
+                  {/* Technos */}
+                  <div className="projet-card__techno">
+                    {projet.techno.map(t => (
+                      <span key={t} className="tag tag-dark">{t}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="projet-card__footer">
+                  <span className="projet-card__ecrans">{projet.ecrans} {t('realisations.ecrans')}</span>
+                  <div className="projet-card__action">
+                    <span>{t('realisations.voirProjet')}</span>
+                    <ArrowRight size={14} />
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -177,8 +329,8 @@ export default function Accueil() {
       {/* ===== CTA FINAL ===== */}
       <section className="section cta-section reveal" id="cta">
         <div className="container">
-          <div className="cta-block">
-            <span className="section-label">{t('ctaFinal.label')}</span>
+          <div className="cta-block liquid-cta">
+            <span className="section-label text-gold-light">{t('ctaFinal.label')}</span>
             <h2 className="cta-block__title">
               {t('ctaFinal.title1')}<br />
               <span className="text-gold italic">{t('ctaFinal.title2')}</span>

@@ -63,10 +63,13 @@ export default {
   realisations: {
     label: 'PORTFOLIO',
     title: 'My Projects',
+    featuredTitle: 'Some projects',
+    featuredViewAll: 'View all projects',
     filterAll: 'All',
     filterWeb: 'Web',
     filterMobile: 'Mobile',
     filterDashboard: 'Dashboard / Product / SaaS',
+    filterDev: 'Front / Full Dev',
     voirProjet: 'View project',
     ecrans: 'screens',
   },

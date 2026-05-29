@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, Monitor, Smartphone, LayoutDashboard, Globe, ArrowRight } from 'lucide-react'
+import { ExternalLink, Monitor, Smartphone, LayoutDashboard, Globe, ArrowRight, Code } from 'lucide-react'
 import { projets as staticProjets } from '../data/projets'
 import { useTranslation } from 'react-i18next'
 import { translateArray } from '../i18n/autoTranslate'
@@ -11,6 +11,7 @@ const categoryIcon = {
   web:       <Globe size={14} />,
   mobile:    <Smartphone size={14} />,
   dashboard: <LayoutDashboard size={14} />,
+  dev:       <Code size={14} />,
 }
 
 export default function Realisations() {
@@ -24,6 +25,7 @@ export default function Realisations() {
     { id: 'web',       label: t('realisations.filterWeb') },
     { id: 'mobile',    label: t('realisations.filterMobile') },
     { id: 'dashboard', label: t('realisations.filterDashboard') },
+    { id: 'dev',       label: t('realisations.filterDev') },
   ]
 
   useEffect(() => {

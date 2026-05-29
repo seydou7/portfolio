@@ -38,7 +38,8 @@ export default function Admin() {
     description: '',
     contexte: '',
     role: '',
-    cover: '/portfolio_project_mockup.png'
+    cover: '/portfolio_project_mockup.png',
+    showInHome: false
   })
 
   // State pour le formulaire Parcours (Expérience/Formation)
@@ -124,7 +125,8 @@ export default function Admin() {
         description: '',
         contexte: '',
         role: '',
-        cover: '/portfolio_project_mockup.png'
+        cover: '/portfolio_project_mockup.png',
+        showInHome: false
       })
     }
     setIsProjectFormOpen(true)
@@ -171,8 +173,11 @@ export default function Admin() {
   }
 
   const handleProjectInputChange = (e) => {
-    const { name, value } = e.target
-    setProjectFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setProjectFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }))
   }
 
   const handleSaveProject = async (e) => {
@@ -412,7 +417,7 @@ export default function Admin() {
                     <tr key={projet.id}>
                       <td>
                         <div className="admin-table__projet-name">
-                          <strong>{projet.nom}</strong>
+                          <strong>{projet.nom} {projet.showInHome && <span title="Affiché sur l'accueil">⭐</span>}</strong>
                           <span>{projet.type}</span>
                         </div>
                       </td>
@@ -534,6 +539,16 @@ export default function Admin() {
                       Nouvelle image prête à être téléchargée : {selectedFile.name}
                     </div>
                   )}
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input 
+                    type="checkbox" 
+                    name="showInHome" 
+                    id="showInHome"
+                    checked={projectFormData.showInHome} 
+                    onChange={handleProjectInputChange} 
+                  />
+                  <label htmlFor="showInHome" className="form-label" style={{ margin: 0, cursor: 'pointer' }}>Afficher ce projet sur la page d'accueil</label>
                 </div>
               </div>
 

@@ -61,12 +61,15 @@ export default {
     btn: 'Démarrer un projet'
   },
   realisations: {
-    label: 'PORTFOLIO',
+    label: 'RÉALISATIONS',
     title: 'Mes Réalisations',
+    featuredTitle: 'Quelques projets',
+    featuredViewAll: 'Voir tous les projets',
     filterAll: 'Tous',
     filterWeb: 'Web',
     filterMobile: 'Mobile',
     filterDashboard: 'Dashboard / Produit / SaaS',
+    filterDev: 'Front / Dev complet',
     voirProjet: 'Voir le projet',
     ecrans: 'écrans',
   },

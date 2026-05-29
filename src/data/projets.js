@@ -8,11 +8,12 @@ export const projets = [
     techno: ['Laravel', 'Bootstrap', 'JS'],
     live: 'https://www.coraf.org/',
     figma: 'https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fproto%2FAcVrATo6y8inF9ht2SFvyo%2FCoraf--website%3Fpage-id%3D22%3A10%26type%3Ddesign%26node-id%3D781-3146%26viewport%3D3247%2C-851%2C0.16%26t%3DihDOgrYXELDOGPgh-1%26scaling%3Dmin-zoom%26starting-point-node-id%3D781%3A3146',
-    categorie: 'web',
+    categorie: 'dev',
     description: 'Refonte complète du site institutionnel CORAF et de son dashboard administratif responsive.',
     contexte: 'Le CORAF avait besoin de moderniser sa présence en ligne et de simplifier la gestion de ses publications scientifiques et actualités via un tableau de bord intuitif.',
     role: 'Lead UX/UI Designer & Intégrateur Front-end',
-    cover: '/portfolio_project_mockup.png'
+    cover: '/portfolio_project_mockup.png',
+    showInHome: true
   },
   {
     id: 'cetud',
@@ -173,7 +174,7 @@ export const projets = [
     techno: ['Angular', 'Figma'],
     live: 'https://getlooka.com/',
     figma: null,
-    categorie: 'dashboard',
+    categorie: 'dev',
     description: 'Application web de market research responsive — YUX Design.',
     contexte: 'Développement d\'un outil SaaS pour la collecte et l\'analyse de données marché en Afrique.',
     role: 'UX/UI Designer & Front-end Developer',
