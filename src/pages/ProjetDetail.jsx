@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
-import { ArrowLeft, ExternalLink, LayoutDashboard, Smartphone, Globe } from 'lucide-react'
+import { ArrowLeft, ExternalLink, LayoutDashboard, Smartphone, Globe, Code } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { projets as staticProjets } from '../data/projets'
 import { translateObject } from '../i18n/autoTranslate'
@@ -68,10 +68,21 @@ export default function ProjetDetail() {
 
   const renderIcon = () => {
     switch (projet.categorie) {
-      case 'mobile': return <Smartphone size={16} />
-      case 'web': return <Globe size={16} />
+      case 'mobile':    return <Smartphone size={16} />
+      case 'web':       return <Globe size={16} />
       case 'dashboard': return <LayoutDashboard size={16} />
-      default: return <Globe size={16} />
+      case 'dev':       return <Code size={16} />
+      default:          return <Globe size={16} />
+    }
+  }
+
+  const getCategorieLabel = () => {
+    switch (projet.categorie) {
+      case 'mobile':    return 'Mobile'
+      case 'web':       return 'Web'
+      case 'dashboard': return 'Dashboard'
+      case 'dev':       return 'Front / Dev Complet'
+      default:          return projet.categorie.charAt(0).toUpperCase() + projet.categorie.slice(1)
     }
   }
 
@@ -100,7 +111,7 @@ export default function ProjetDetail() {
               <span className="meta-label">{t('projetDetail.category')}</span>
               <span className="meta-value flex-center">
                 {renderIcon()}
-                {projet.categorie.charAt(0).toUpperCase() + projet.categorie.slice(1)}
+                {getCategorieLabel()}
               </span>
             </div>
             <div className="meta-item">
@@ -140,13 +151,18 @@ export default function ProjetDetail() {
               </div>
             </div>
             
-            {(projet.live || projet.figma) && (
+            {(projet.live || projet.figma || projet.designUrl) && (
               <div className="sidebar-box">
                 <h3 className="sidebar-title">{t('projetDetail.links')}</h3>
                 <div className="links-list">
                   {projet.live && (
                     <a href={projet.live} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{width: '100%'}}>
                       <Globe size={16} /> {t('projetDetail.liveSite')}
+                    </a>
+                  )}
+                  {projet.designUrl && (
+                    <a href={projet.designUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{width: '100%'}}>
+                      <ExternalLink size={16} /> Voir le design
                     </a>
                   )}
                   {projet.figma && (
