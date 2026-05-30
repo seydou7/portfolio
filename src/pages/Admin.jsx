@@ -34,6 +34,7 @@ export default function Admin() {
     techno: '',
     live: '',
     figma: '',
+    designUrl: '',
     categorie: 'web',
     description: '',
     contexte: '',
@@ -121,6 +122,7 @@ export default function Admin() {
         techno: '',
         live: '',
         figma: '',
+        designUrl: '',
         categorie: 'web',
         description: '',
         contexte: '',
@@ -495,28 +497,65 @@ export default function Admin() {
                     <option value="web">Web</option>
                     <option value="mobile">Mobile</option>
                     <option value="dashboard">Dashboard</option>
+                    <option value="dev">Front / Dev Complet</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Pays</label>
                   <input type="text" name="pays" className="form-input" value={projectFormData.pays} onChange={handleProjectInputChange} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Nombre d'écrans</label>
-                  <input type="text" name="ecrans" className="form-input" placeholder="Ex: 12, +50" value={projectFormData.ecrans} onChange={handleProjectInputChange} />
-                </div>
+
+                {/* Nombre d'écrans — masqué pour la catégorie dev */}
+                {projectFormData.categorie !== 'dev' && (
+                  <div className="form-group">
+                    <label className="form-label">Nombre d'écrans</label>
+                    <input type="text" name="ecrans" className="form-input" placeholder="Ex: 12, +50" value={projectFormData.ecrans} onChange={handleProjectInputChange} />
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label className="form-label">Technologies (séparées par des virgules)</label>
-                  <input type="text" name="techno" className="form-input" placeholder="Ex: Figma, React, CSS" value={projectFormData.techno} onChange={handleProjectInputChange} />
+                  <input type="text" name="techno" className="form-input" placeholder="Ex: React, Node.js, CSS" value={projectFormData.techno} onChange={handleProjectInputChange} />
                 </div>
+
+                {/* Lien Live — obligatoire pour dev */}
                 <div className="form-group">
-                  <label className="form-label">Lien Live</label>
-                  <input type="url" name="live" className="form-input" value={projectFormData.live} onChange={handleProjectInputChange} />
+                  <label className="form-label">
+                    Lien du site {projectFormData.categorie === 'dev' ? <span style={{color:'var(--color-gold)'}}>*</span> : ''}
+                  </label>
+                  <input
+                    type="url"
+                    name="live"
+                    className="form-input"
+                    placeholder="https://monsite.com"
+                    value={projectFormData.live}
+                    onChange={handleProjectInputChange}
+                    required={projectFormData.categorie === 'dev'}
+                  />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Lien Figma Embed</label>
-                  <input type="url" name="figma" className="form-input" placeholder="https://www.figma.com/embed?..." value={projectFormData.figma} onChange={handleProjectInputChange} />
-                </div>
+
+                {/* URL du Design — uniquement pour dev, optionnel */}
+                {projectFormData.categorie === 'dev' && (
+                  <div className="form-group">
+                    <label className="form-label">URL du Design <span style={{fontSize:'11px', color:'var(--color-muted)', fontWeight:400}}>(Figma ou autre — optionnel)</span></label>
+                    <input
+                      type="url"
+                      name="designUrl"
+                      className="form-input"
+                      placeholder="https://figma.com/design/..."
+                      value={projectFormData.designUrl || ''}
+                      onChange={handleProjectInputChange}
+                    />
+                  </div>
+                )}
+
+                {/* Figma Embed — masqué pour dev (pas de maquettes) */}
+                {projectFormData.categorie !== 'dev' && (
+                  <div className="form-group">
+                    <label className="form-label">Lien Figma Embed</label>
+                    <input type="url" name="figma" className="form-input" placeholder="https://www.figma.com/embed?..." value={projectFormData.figma} onChange={handleProjectInputChange} />
+                  </div>
+                )}
                 <div className="form-group">
                   <label className="form-label">Rôle *</label>
                   <input type="text" name="role" className="form-input" value={projectFormData.role} onChange={handleProjectInputChange} required />

@@ -95,6 +95,7 @@ const projetSchema = new mongoose.Schema({
   contexte: String,
   role: String,
   cover: String,
+  designUrl: String,
   showInHome: { type: Boolean, default: false },
   order: Number
 });

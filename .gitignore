@@ -31,3 +31,4 @@ dist-ssr
 # Fichiers uploadés (doivent rester sur le serveur)
 server/uploads/*
 !server/uploads/.gitkeep
+.vercel
