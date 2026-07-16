@@ -81,6 +81,15 @@ app.get('/api/ping', (req, res) => {
 });
 
 // --- SCHEMAS ---
+const visitSchema = new mongoose.Schema({
+  page: String,
+  source: String,
+  date: { type: Date, default: Date.now },
+  ip: String
+});
+
+const Visit = mongoose.model('Visit', visitSchema);
+
 const projetSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   nom: String,
@@ -446,6 +455,73 @@ app.post('/api/parcours/reorder', async (req, res) => {
       await Parcours.findByIdAndUpdate(item.id, { order: item.order });
     }
     res.json({ message: 'Ordre mis à jour' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// --- VISITS ---
+app.post('/api/visits', async (req, res) => {
+  const { page, source } = req.body;
+  // Hachage simple de l'IP pour éviter les doublons abusifs sans stocker de PII
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const crypto = require('crypto');
+  const ipHash = crypto.createHash('sha256').update(ip).digest('hex');
+
+  try {
+    // Vérifie si la même IP a visité la même page dans les dernières 30 minutes
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const recentVisit = await Visit.findOne({
+      page,
+      ip: ipHash,
+      date: { $gte: thirtyMinsAgo }
+    });
+
+    if (!recentVisit) {
+      const visit = new Visit({ page, source, ip: ipHash });
+      await visit.save();
+    }
+    
+    res.status(201).json({ success: true });
+  } catch (err) {
+    // On ne bloque pas le client en cas d'erreur
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/visits/stats', async (req, res) => {
+  try {
+    const totalVisits = await Visit.countDocuments();
+
+    const topPages = await Visit.aggregate([
+      { $group: { _id: "$page", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    const sources = await Visit.aggregate([
+      { $match: { source: { $ne: null, $ne: "" } } },
+      { $group: { _id: "$source", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    // Évolution sur 7 jours
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const visitsByDay = await Visit.aggregate([
+      { $match: { date: { $gte: sevenDaysAgo } } },
+      { 
+        $group: { 
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, 
+          count: { $sum: 1 } 
+        } 
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json({ totalVisits, topPages, sources, visitsByDay });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

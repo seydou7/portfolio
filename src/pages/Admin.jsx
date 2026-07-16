@@ -5,6 +5,7 @@ import { experiences as staticExperiences, formations as staticFormations } from
 import { Plus, Pencil, Trash2, ExternalLink, X, Save, ArrowUp, ArrowDown, Crop } from 'lucide-react'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
+import StatsWidget from '../components/StatsWidget'
 import API_URL from '../config/api'
 import './Admin.css'
 
@@ -391,7 +392,23 @@ export default function Admin() {
           >
             Parcours
           </button>
+          <button 
+            className={`admin-nav__btn ${activeTab === 'stats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            Statistiques
+          </button>
         </div>
+
+        {/* ONGLET STATISTIQUES */}
+        {activeTab === 'stats' && (
+          <div className="admin-content animate-fade-up">
+            <div className="admin-content__header">
+              <h2>Statistiques de Visites</h2>
+            </div>
+            <StatsWidget />
+          </div>
+        )}
 
         {/* ONGLET PROJETS */}
         {activeTab === 'projets' && !isProjectFormOpen && (

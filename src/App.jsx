@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LanguageModal from './components/LanguageModal'
+import AccueilV2 from './pages/AccueilV2'
 import Accueil from './pages/Accueil'
 import Parcours from './pages/Parcours'
 import Realisations from './pages/Realisations'
@@ -10,6 +11,12 @@ import ProjetDetail from './pages/ProjetDetail'
 import Contact from './pages/Contact'
 import Admin from './pages/Admin'
 import Login from './pages/Login'
+import { useTracking } from './hooks/useTracking'
+
+function TrackingHandler() {
+  useTracking()
+  return null
+}
 
 function App() {
   const [showLangModal, setShowLangModal] = useState(false)
@@ -28,19 +35,21 @@ function App() {
 
   return (
     <BrowserRouter>
+      <TrackingHandler />
       {showLangModal && (
         <LanguageModal onClose={() => setShowLangModal(false)} />
       )}
       <Navbar onOpenLangModal={() => setShowLangModal(true)} />
       <main>
         <Routes>
-          <Route path="/"            element={<Accueil />} />
-          <Route path="/parcours"    element={<Parcours />} />
-          <Route path="/realisations" element={<Realisations />} />
-          <Route path="/projet/:id"  element={<ProjetDetail />} />
-          <Route path="/contact"     element={<Contact />} />
-          <Route path="/login"       element={<Login />} />
-          <Route path="/admin"       element={<Admin />} />
+          <Route path="/"                element={<AccueilV2 />} />
+          <Route path="/accueil-classic" element={<Accueil />} />
+          <Route path="/parcours"        element={<Parcours />} />
+          <Route path="/realisations"    element={<Realisations />} />
+          <Route path="/projet/:id"      element={<ProjetDetail />} />
+          <Route path="/contact"         element={<Contact />} />
+          <Route path="/login"           element={<Login />} />
+          <Route path="/admin"           element={<Admin />} />
         </Routes>
       </main>
       <Footer />

@@ -28,7 +28,8 @@ export const projets = [
     description: 'Application web avec dashboard multi-rôles (Responsable, Agent, Comité) pour la gestion des transports.',
     contexte: 'Optimisation des processus de validation et de suivi pour les agents de transport et le comité de direction.',
     role: 'Product Designer',
-    cover: '/portfolio_project_mockup.png'
+    cover: '/portfolio_project_mockup.png',
+    showInHome: true
   },
   {
     id: 'livelearn',
@@ -43,7 +44,8 @@ export const projets = [
     description: 'Plateforme e-learning complète : cours, blog, podcast — conçue pour le marché néerlandais.',
     contexte: 'Création from scratch d\'une plateforme éducative à destination d\'un large public néerlandophone.',
     role: 'Lead UX/UI Designer',
-    cover: '/portfolio_project_mockup.png'
+    cover: '/portfolio_project_mockup.png',
+    showInHome: true
   },
   {
     id: 'gestion-immo',
