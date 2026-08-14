@@ -36,9 +36,9 @@
 
 .contact-hero__title {
   font-family: var(--font-heading, 'Sora', sans-serif);
-  font-size: clamp(32px, 3.2vw, 44px);
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   font-weight: 700;
   color: var(--color-text-main, #101828);
   margin-bottom: 16px;

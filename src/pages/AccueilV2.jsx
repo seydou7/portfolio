@@ -166,7 +166,7 @@ export default function AccueilV2() {
             </motion.div>
             
             <motion.h1 className="v2-hero__title" variants={fadeUp}>
-              Je conçois des interfaces claires pour des produits web complexes.
+              Je conçois des interfaces claires pour des produits web & mobiles complexes.
             </motion.h1>
             
             <motion.p className="v2-hero__desc-main" variants={fadeUp}>

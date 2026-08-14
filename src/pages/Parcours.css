@@ -19,11 +19,11 @@
 
 .parcours-hero__title {
   font-family: var(--font-heading, 'Sora', sans-serif);
-  font-size: clamp(32px, 4.5vw, 44px);
+  font-size: clamp(28px, 3.2vw, 38px);
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.25;
   color: var(--color-text-main, #101828);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   margin-top: 8px;
   margin-bottom: 16px;
   max-width: 900px;

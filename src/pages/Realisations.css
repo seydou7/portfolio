@@ -19,9 +19,9 @@
 
 .projets-hero__title {
   font-family: var(--font-heading, 'Sora', sans-serif);
-  font-size: clamp(36px, 3.6vw, 48px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: clamp(30px, 3.2vw, 40px);
+  line-height: 1.22;
+  letter-spacing: -0.025em;
   font-weight: 700;
   color: var(--color-text-main, #101828);
   margin-top: 12px;
