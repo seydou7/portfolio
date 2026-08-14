@@ -11,10 +11,10 @@ export default function Navbar({ onOpenLangModal }) {
   const { t, i18n } = useTranslation()
 
   const links = [
-    { to: '/',             label: t('nav.accueil') },
-    { to: '/parcours',     label: t('nav.parcours') },
-    { to: '/realisations', label: t('nav.realisations') },
-    { to: '/contact',      label: t('nav.contact') },
+    { to: '/realisations', label: t('nav.realisations', 'Projets') },
+    { to: '/parcours',     label: t('nav.parcours', 'Parcours') },
+    { to: '/a-propos',     label: t('nav.about', 'À propos') },
+    { to: '/contact',      label: t('nav.contact', 'Contact') },
   ]
 
   useEffect(() => {
@@ -36,24 +36,39 @@ export default function Navbar({ onOpenLangModal }) {
         <div className="navbar__left">
           <NavLink to="/" className="navbar__logo">
             SD<span className="navbar__logo-dot">.</span>
+            <span className="navbar__logo-name">Seydou Diallo</span>
           </NavLink>
         </div>
 
         {/* Navigation desktop */}
         <div className="navbar__center">
           <nav className="navbar__links" aria-label="Navigation principale">
-            {links.filter(l => l.to !== '/contact').map(link => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.to === '/'}
-                className={({ isActive }) =>
-                  `navbar__link ${isActive ? 'navbar__link--active' : ''}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+            {links.map(link => {
+              const isHash = link.to.includes('#');
+              if (isHash) {
+                return (
+                  <a
+                    key={link.to}
+                    href={link.to}
+                    className="navbar__link"
+                  >
+                    {link.label}
+                  </a>
+                );
+              }
+              return (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.to === '/'}
+                  className={({ isActive }) =>
+                    `navbar__link ${isActive ? 'navbar__link--active' : ''}`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
 
@@ -77,11 +92,14 @@ export default function Navbar({ onOpenLangModal }) {
           </div>
 
           <a
-            href="/contact"
+            href="/cv-seydou-diallo.pdf"
+            download="CV_Seydou_DIALLO_FR.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-primary navbar__cta"
-            aria-label={t('nav.meContacter')}
+            aria-label="Télécharger mon CV"
           >
-            {t('nav.meContacter')}
+            Télécharger mon CV
           </a>
         </div>
 
@@ -116,19 +134,44 @@ export default function Navbar({ onOpenLangModal }) {
       {/* Mobile menu */}
       {menuOpen && (
         <nav className="navbar__mobile" aria-label="Navigation mobile">
-          {links.map(link => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.to === '/'}
-              className={({ isActive }) =>
-                `navbar__mobile-link ${isActive ? 'navbar__mobile-link--active' : ''}`
-              }
-              onClick={() => setMenuOpen(false)}
-            >
-              {link.label}
-            </NavLink>
-          ))}
+          {links.map(link => {
+            const isHash = link.to.includes('#');
+            if (isHash) {
+              return (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  className="navbar__mobile-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {link.label}
+                </a>
+              );
+            }
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/'}
+                className={({ isActive }) =>
+                  `navbar__mobile-link ${isActive ? 'navbar__mobile-link--active' : ''}`
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            );
+          })}
+          <a
+            href="/cv-seydou-diallo.pdf"
+            download="CV_Seydou_DIALLO_FR.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary navbar__mobile-cta"
+            style={{ margin: '1rem', display: 'block', textAlign: 'center' }}
+          >
+            Télécharger mon CV
+          </a>
         </nav>
       )}
     </header>

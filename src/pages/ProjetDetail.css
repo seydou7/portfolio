@@ -1,5 +1,5 @@
 .projet-detail {
-  padding-bottom: var(--space-32);
+  padding-bottom: 0;
   background-color: var(--color-bg);
   min-height: 100vh;
 }
@@ -183,7 +183,8 @@
 /* Footer CTA */
 .projet-detail__footer {
   text-align: center;
-  padding-top: var(--space-24);
+  padding-top: 32px;
+  padding-bottom: 48px;
 }
 
 /* Responsive */

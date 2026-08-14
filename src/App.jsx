@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LanguageModal from './components/LanguageModal'
@@ -7,6 +7,7 @@ import AccueilV2 from './pages/AccueilV2'
 import Accueil from './pages/Accueil'
 import Parcours from './pages/Parcours'
 import Realisations from './pages/Realisations'
+import APropos from './pages/APropos'
 import ProjetDetail from './pages/ProjetDetail'
 import Contact from './pages/Contact'
 import Admin from './pages/Admin'
@@ -46,6 +47,9 @@ function App() {
           <Route path="/accueil-classic" element={<Accueil />} />
           <Route path="/parcours"        element={<Parcours />} />
           <Route path="/realisations"    element={<Realisations />} />
+          <Route path="/a-propos"        element={<APropos />} />
+          <Route path="/about"           element={<Navigate to="/a-propos" replace />} />
+          <Route path="/expertise"       element={<Navigate to="/a-propos#expertise" replace />} />
           <Route path="/projet/:id"      element={<ProjetDetail />} />
           <Route path="/contact"         element={<Contact />} />
           <Route path="/login"           element={<Login />} />

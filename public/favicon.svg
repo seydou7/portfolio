@@ -1,4 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="22" fill="#1C1917" />
-  <text x="50" y="70" font-family="Georgia, 'Times New Roman', serif" font-size="60" font-weight="bold" font-style="italic" fill="#CA8A04" text-anchor="middle">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+  </defs>
+  <!-- Background Container -->
+  <rect width="120" height="120" rx="28" fill="url(#favBg)" />
+  <rect width="118" height="118" x="1" y="1" rx="27" fill="none" stroke="rgba(255, 255, 255, 0.12)" stroke-width="2" />
+  
+  <!-- Monogram SD -->
+  <text 
+    x="48" 
+    y="78" 
+    font-family="-apple-system, BlinkMacSystemFont, 'Sora', 'Inter', 'Segoe UI', Roboto, sans-serif" 
+    font-size="52" 
+    font-weight="800" 
+    letter-spacing="-2px"
+    fill="#FFFFFF" 
+    text-anchor="middle"
+  >SD</text>
+  
+  <!-- Accent Blue Dot -->
+  <circle cx="86" cy="73" r="7" fill="#2563EB" />
 </svg>

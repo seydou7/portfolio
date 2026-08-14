@@ -1,673 +1,387 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  ArrowRight, Mail, Phone, Link2,
-  Globe, Smartphone, LayoutDashboard, Code, Monitor,
-  Palette, Eye, Users, Calendar, Briefcase, Layers,
-} from 'lucide-react'
+import { ArrowRight, Mail, Phone, Link2, Monitor, Globe, Code, Palette, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
-import { projets as staticProjets } from '../data/projets'
-import { translateArray } from '../i18n/autoTranslate'
-import API_URL from '../config/api'
+import { motion } from 'framer-motion'
 import './AccueilV2.css'
 
 /* ============================================================
-   HELPERS
+   ANIMATION VARIANTS
    ============================================================ */
-const categoryIcon = {
-  web: <Globe size={16} />,
-  mobile: <Smartphone size={16} />,
-  dashboard: <LayoutDashboard size={16} />,
-  dev: <Code size={16} />,
-}
-const serviceIcons = [<Palette size={24} />, <Code size={24} />, <Eye size={24} />, <Users size={24} />]
-const statIcons = [<Calendar size={22} />, <Briefcase size={22} />, <Globe size={22} />, <Layers size={22} />]
-
-/* Framer Motion variants */
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 16 },
   visible: (i = 0) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.7, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.4, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] },
   }),
 }
 
 const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.92 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-}
-
-/* ============================================================
-   SPOTLIGHT CURSOR
-   ============================================================ */
-function Spotlight() {
-  const x = useMotionValue(-200)
-  const y = useMotionValue(-200)
-  const smoothX = useSpring(x, { stiffness: 100, damping: 30 })
-  const smoothY = useSpring(y, { stiffness: 100, damping: 30 })
-
-  useEffect(() => {
-    const move = (e) => { x.set(e.clientX - 200); y.set(e.clientY - 200) }
-    window.addEventListener('mousemove', move)
-    return () => window.removeEventListener('mousemove', move)
-  }, [x, y])
-
-  return (
-    <motion.div
-      className="v2-spotlight"
-      style={{ left: smoothX, top: smoothY }}
-      aria-hidden="true"
-    />
-  )
-}
-
-/* ============================================================
-   ANIMATED NAME
-   ============================================================ */
-function AnimatedName({ name }) {
-  return (
-    <motion.span
-      aria-label={name}
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      {name.split('').map((char, i) => (
-        <motion.span
-          key={i}
-          style={{ display: 'inline-block' }}
-          variants={{
-            hidden: { opacity: 0, y: 60, rotateX: -40 },
-            visible: {
-              opacity: 1, y: 0, rotateX: 0,
-              transition: { duration: 0.6, delay: 0.3 + i * 0.04, ease: [0.16, 1, 0.3, 1] },
-            },
-          }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </motion.span>
-      ))}
-    </motion.span>
-  )
-}
-
-/* ============================================================
-   TYPEWRITER
-   ============================================================ */
-function Typewriter({ words }) {
-  const [index, setIndex] = useState(0)
-  const [text, setText] = useState('')
-  const [deleting, setDeleting] = useState(false)
-
-  useEffect(() => {
-    const word = words[index]
-    const speed = deleting ? 35 : 70
-    const timeout = setTimeout(() => {
-      if (!deleting) {
-        setText(word.slice(0, text.length + 1))
-        if (text.length + 1 === word.length) setTimeout(() => setDeleting(true), 2000)
-      } else {
-        setText(word.slice(0, text.length - 1))
-        if (text.length === 0) { setDeleting(false); setIndex((i) => (i + 1) % words.length) }
-      }
-    }, speed)
-    return () => clearTimeout(timeout)
-  }, [text, deleting, index, words])
-
-  return (
-    <span className="v2-hero__typewriter">
-      {text}<span className="v2-hero__cursor" aria-hidden="true" />
-    </span>
-  )
-}
-
-/* ============================================================
-   COUNT-UP
-   ============================================================ */
-function CountUp({ target, suffix = '', duration = 2000 }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef(null)
-  const hasAnimated = useRef(false)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true
-          const num = parseInt(target, 10)
-          const steps = 60
-          const stepDur = duration / steps
-          let current = 0
-          const inc = num / steps
-          const interval = setInterval(() => {
-            current += inc
-            if (current >= num) { setCount(num); clearInterval(interval) }
-            else setCount(Math.floor(current))
-          }, stepDur)
-        }
-      },
-      { threshold: 0.3 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [target, duration])
-
-  return <span ref={ref}>{count}{suffix}</span>
-}
-
-/* ============================================================
-   SCROLL REVEAL HOOK
-   ============================================================ */
-function useScrollRevealV2() {
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('v2-revealed'); observer.unobserve(e.target) }
-      }),
-      { threshold: 0.08 }
-    )
-    document.querySelectorAll('.v2-reveal, .v2-reveal-left, .v2-reveal-right').forEach(el => observer.observe(el))
-    return () => observer.disconnect()
-  }, [])
-}
-
-/* ============================================================
-   PARALLAX SECTION
-   ============================================================ */
-function ParallaxSection({ children, speed = 0.1, className = '' }) {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], [speed * 100, speed * -100])
-
-  return (
-    <motion.section ref={ref} style={{ y }} className={className}>
-      {children}
-    </motion.section>
-  )
+  visible: { transition: { staggerChildren: 0.1 } },
 }
 
 /* ============================================================
    MAIN PAGE
    ============================================================ */
 export default function AccueilV2() {
-  useScrollRevealV2()
-  const { t, i18n } = useTranslation()
-  const [projetsHome, setProjetsHome] = useState([])
-  const [translatedProjets, setTranslatedProjets] = useState([])
+  const { t } = useTranslation()
 
-  // Fetch projects
-  useEffect(() => {
-    fetch(`${API_URL}/api/projets`)
-      .then(res => res.json())
-      .then(data => {
-        if (data?.length > 0) {
-          const hp = data.filter(p => p.showInHome)
-          const fallback = [...hp, ...data.filter(p => !p.showInHome)].slice(0, 3)
-          setProjetsHome(hp.length >= 3 ? hp.slice(0, 3) : fallback)
-        } else {
-          const sp = staticProjets.filter(p => p.showInHome)
-          const fallback = [...sp, ...staticProjets.filter(p => !p.showInHome)].slice(0, 3)
-          setProjetsHome(sp.length >= 3 ? sp.slice(0, 3) : fallback)
-        }
-      })
-      .catch(() => {
-        const sp = staticProjets.filter(p => p.showInHome)
-        const fallback = [...sp, ...staticProjets.filter(p => !p.showInHome)].slice(0, 3)
-        setProjetsHome(sp.length >= 3 ? sp.slice(0, 3) : fallback)
-      })
-  }, [])
+  const projets = [
+    {
+      id: 'ndymbel',
+      org: 'CETUD',
+      nom: 'Ndimbël — Tarifs Sociaux',
+      description: 'Conception d’une plateforme multi-profils destinée à gérer les demandes, l’évaluation des bénéficiaires et la production des cartes de transport social.',
+      tags: ['UX Design', 'UI Design', 'Dashboard', 'Design system'],
+      infos: 'Plateforme institutionnelle · Parcours multi-rôles',
+      key: 'cetud'
+    },
+    {
+      id: 'etpe',
+      org: 'Trésor Public',
+      nom: 'eTPE — Gestion des pièces comptables',
+      description: 'Conception d’un outil métier permettant de centraliser, contrôler et transmettre les pièces comptables des postes diplomatiques et consulaires.',
+      tags: ['Product Design', 'UX Architecture', 'Data tables', 'Prototypage'],
+      infos: 'Produit métier · Processus administratifs complexes',
+      key: 'etpe'
+    },
+    {
+      id: 'livelearn',
+      org: 'LiveLearn',
+      nom: 'LiveLearn — Plateforme e-learning',
+      description: 'Refonte de l’expérience et des interfaces d’une plateforme de formation en ligne, avec adaptation responsive et accompagnement de l’intégration front-end.',
+      tags: ['UX/UI', 'Responsive', 'E-learning', 'Front-end'],
+      infos: 'Plateforme web · Refonte d’expérience',
+      key: 'livelearn'
+    }
+  ]
 
-  useEffect(() => {
-    if (!projetsHome.length) return
-    const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
-    translateArray(projetsHome, ['description', 'type'], lang).then(setTranslatedProjets)
-  }, [projetsHome, i18n.language])
+  // Méthode de travail
+  const methodes = [
+    { num: '01', titre: 'Comprendre', texte: 'Identifier les utilisateurs, le contexte métier, les objectifs et les contraintes du projet.' },
+    { num: '02', titre: 'Structurer', texte: 'Organiser l’information, définir les parcours et prioriser les fonctionnalités importantes.' },
+    { num: '03', titre: 'Concevoir', texte: 'Explorer les solutions, produire les wireframes, les prototypes et les interfaces haute fidélité.' },
+    { num: '04', titre: 'Accompagner', texte: 'Préparer le handoff, collaborer avec les développeurs et vérifier la qualité de l’intégration.' }
+  ]
 
-  const displayedProjets = translatedProjets.length > 0 ? translatedProjets : projetsHome
-
-  // Re-observe reveals after dynamic content loads
-  useEffect(() => {
-    if (!displayedProjets.length) return
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('v2-revealed'); observer.unobserve(e.target) }
-      }),
-      { threshold: 0.08 }
-    )
-    const timer = setTimeout(() => {
-      document.querySelectorAll('.v2-reveal:not(.v2-revealed), .v2-reveal-left:not(.v2-revealed), .v2-reveal-right:not(.v2-revealed)')
-        .forEach(el => observer.observe(el))
-    }, 100)
-    return () => { observer.disconnect(); clearTimeout(timer) }
-  }, [displayedProjets])
-
-  const typewriterWords = t('heroV2.typewriter', { returnObjects: true })
-  const statsItems = t('statsImpact.items', { returnObjects: true })
-  const serviceItems = t('servicesSection.items', { returnObjects: true })
-  const stackCategories = t('stackTech.categories', { returnObjects: true })
-  const countries = t('availability.countries', { returnObjects: true })
-  const trustClients = t('trustBar.clients', { returnObjects: true })
+  // Parcours
+  const parcours = [
+    { periode: 'Depuis 2018', role: 'UX/UI Designer & Front-end', org: 'Freelance / Remote', desc: 'Accompagnement de startups et d\'institutions sur des produits web complexes (Fintech, Edtech, Secteur public).' },
+    { periode: '2021 - 2023', role: 'Product Designer', org: 'YUX Design', desc: 'Recherche utilisateur, prototypage et développement de plateformes web pour l\'Afrique.' },
+    { periode: '2019 - 2021', role: 'Web Designer & Intégrateur', org: 'Agences Digitales', desc: 'Conception et intégration de sites vitrines et corporate.' }
+  ]
 
   return (
     <div className="v2-page">
-      {/* ===== GLOBAL BACKGROUND EFFECTS ===== */}
-      <div className="v2-aurora" aria-hidden="true">
-        <div className="v2-aurora__blob v2-aurora__blob--1" />
-        <div className="v2-aurora__blob v2-aurora__blob--2" />
-        <div className="v2-aurora__blob v2-aurora__blob--3" />
-      </div>
-      <div className="v2-grid-overlay" aria-hidden="true" />
-      <div className="v2-noise" aria-hidden="true" />
-      <Spotlight />
-
+      
       {/* ===== 1. HERO ===== */}
       <section className="v2-hero" id="v2-hero">
-        <div className="v2-hero__beams" aria-hidden="true">
-          {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className={`v2-beam v2-beam--${i}`} />)}
-        </div>
-
-        <motion.div
-          className="v2-hero__content"
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-        >
-          <motion.p className="v2-hero__greeting" variants={fadeUp} custom={0}>
-            {t('heroV2.greeting')}
-          </motion.p>
-
-          <h1 className="v2-hero__name">
-            <AnimatedName name={t('heroV2.name')} />
-          </h1>
-
-          <motion.div className="v2-hero__typewriter-wrap" variants={fadeUp} custom={3}>
-            <Typewriter words={Array.isArray(typewriterWords) ? typewriterWords : ['Designer UX/UI']} />
+        <div className="container v2-hero__grid">
+          
+          <motion.div 
+            className="v2-hero__content"
+            initial="hidden" animate="visible" variants={staggerContainer}
+          >
+            <motion.div className="v2-hero__status" variants={fadeUp}>
+              <span className="status-dot"></span>
+              Disponible pour de nouvelles opportunités
+            </motion.div>
+            
+            <motion.div className="v2-hero__label" variants={fadeUp}>
+              UX/UI DESIGNER · DAKAR · REMOTE & PRÉSENTIEL
+            </motion.div>
+            
+            <motion.h1 className="v2-hero__title" variants={fadeUp}>
+              Je conçois des interfaces claires pour des produits web complexes.
+            </motion.h1>
+            
+            <motion.p className="v2-hero__desc-main" variants={fadeUp}>
+              UX/UI Designer depuis 2018, j’accompagne les équipes dans la conception de parcours, de tableaux de bord et de plateformes métier, de la compréhension du besoin jusqu’aux maquettes haute fidélité.
+            </motion.p>
+            
+            <motion.p className="v2-hero__desc-sub" variants={fadeUp}>
+              Ma maîtrise du front-end me permet de proposer des interfaces réalistes, cohérentes et plus simples à intégrer.
+            </motion.p>
+            
+            <motion.div className="v2-hero__actions" variants={fadeUp}>
+              <Link to="/realisations" className="btn btn-primary">Voir mes projets</Link>
+              <a href="/cv-seydou-diallo.pdf" download="CV_Seydou_DIALLO_FR.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                Télécharger mon CV
+              </a>
+            </motion.div>
+            
+            <motion.div className="v2-hero__location" variants={fadeUp}>
+              Basé à Dakar · Disponible en remote & présentiel
+            </motion.div>
           </motion.div>
-
-          <motion.p className="v2-hero__subtitle" variants={fadeUp} custom={4}>
-            {t('heroV2.subtitle')}
-          </motion.p>
-
-          <motion.div className="v2-hero__stats" variants={fadeUp} custom={5}>
-            <div className="v2-hero__stat">
-              <span className="v2-hero__stat-num">6+</span>
-              <span className="v2-hero__stat-label">{t('heroV2.statYears')}</span>
-            </div>
-            <div className="v2-hero__stat">
-              <span className="v2-hero__stat-num">15+</span>
-              <span className="v2-hero__stat-label">{t('heroV2.statProjects')}</span>
-            </div>
-            <div className="v2-hero__stat">
-              <span className="v2-hero__stat-num">5</span>
-              <span className="v2-hero__stat-label">{t('heroV2.statCountries')}</span>
+          
+          <motion.div 
+            className="v2-hero__visual"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="v2-hero__visual-frame">
+              <img src="/portfolio_project_mockup.png" alt="Exemple d'interface de tableau de bord" loading="eager" />
             </div>
           </motion.div>
-
-          <motion.div variants={fadeUp} custom={6} style={{ display: 'flex', justifyContent: 'center' }}>
-            <div className="v2-hero__available">
-              <span className="v2-hero__available-dot" />
-              {t('heroV2.available')}
-            </div>
-          </motion.div>
-
-          <motion.div className="v2-hero__ctas" variants={fadeUp} custom={7}>
-            <Link to="/realisations" className="v2-hero__cta-primary">
-              {t('heroV2.ctaPrimary')} <ArrowRight size={16} />
-            </Link>
-            <Link to="/contact" className="v2-hero__cta-secondary">
-              {t('heroV2.ctaSecondary')}
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        <div className="v2-hero__scroll" aria-hidden="true">
-          <span>{t('heroV2.scrollHint')}</span>
-          <div className="v2-hero__scroll-line" />
+          
         </div>
       </section>
 
-      {/* ===== 2. TRUST BAR ===== */}
-      <section className="v2-trust" id="v2-trust">
-        <p className="v2-trust__label">{t('trustBar.label')}</p>
-        <div className="v2-trust__track">
-          {[...trustClients, ...trustClients].map((client, i) => (
-            <span key={i}>
-              <span className="v2-trust__item">{client}</span>
-              {i < trustClients.length * 2 - 1 && <span className="v2-trust__sep">✦</span>}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <div className="v2-section-divider" />
-
-      {/* ===== 3. PITCH ABOUT ===== */}
-      <section className="v2-pitch section" id="v2-about">
+      {/* ===== 2. BANDE DE CRÉDIBILITÉ ===== */}
+      <section className="v2-credibility">
         <div className="container">
-          <div className="v2-pitch__grid">
-            <motion.div
-              className="v2-pitch__text"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={staggerContainer}
-            >
-              <motion.span className="v2-pitch__label" variants={fadeUp}>{t('pitchAbout.label')}</motion.span>
-              <motion.h2 className="v2-pitch__title" variants={fadeUp}>{t('pitchAbout.title')}</motion.h2>
-              <motion.p className="v2-pitch__para" variants={fadeUp}>{t('pitchAbout.p1')}</motion.p>
-              <motion.p className="v2-pitch__para" variants={fadeUp}>{t('pitchAbout.p2')}</motion.p>
-              <motion.p className="v2-pitch__para" variants={fadeUp}>{t('pitchAbout.p3')}</motion.p>
-              <motion.div className="v2-pitch__divider" variants={fadeUp} />
-              <motion.div variants={fadeUp}>
-                <Link to="/parcours" className="v2-pitch__cta">
-                  {t('pitchAbout.cta')} <ArrowRight size={14} />
-                </Link>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              className="v2-pitch__img-wrap"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-100px' }}
-              variants={scaleIn}
-            >
-              <img
-                src="/about-workspace.png"
-                alt={t('pitchAbout.imgAlt')}
-                className="v2-pitch__img"
-                loading="lazy"
-              />
-            </motion.div>
+          <div className="v2-credibility__grid">
+            <div className="v2-credibility__item">
+              <h3 className="v2-credibility__title">Depuis 2018</h3>
+              <p className="v2-credibility__desc">Expérience en UX/UI Design</p>
+            </div>
+            <div className="v2-credibility__item">
+              <h3 className="v2-credibility__title">Produits métier</h3>
+              <p className="v2-credibility__desc">SaaS, dashboards et plateformes web</p>
+            </div>
+            <div className="v2-credibility__item">
+              <h3 className="v2-credibility__title">Design systems</h3>
+              <p className="v2-credibility__desc">Interfaces cohérentes et évolutives</p>
+            </div>
+            <div className="v2-credibility__item">
+              <h3 className="v2-credibility__title">Front-end</h3>
+              <p className="v2-credibility__desc">Angular, React et intégration responsive</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="v2-section-divider" />
-
-      {/* ===== 4. STATS IMPACT ===== */}
-      <section className="v2-stats section" id="v2-stats">
+      {/* ===== 3. PROJETS SÉLECTIONNÉS ===== */}
+      <section className="section v2-projects" id="projects">
         <div className="container">
-          <motion.p
-            className="v2-stats__label"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-          >
-            {t('statsImpact.label')}
-          </motion.p>
-          <motion.div
-            className="v2-stats__grid"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
-            variants={staggerContainer}
-          >
-            {Array.isArray(statsItems) && statsItems.map((stat, i) => (
-              <motion.div className="v2-stat-card" key={i} variants={fadeUp} custom={i}>
-                <div className="v2-stat-card__icon">{statIcons[i]}</div>
-                <div className="v2-stat-card__num">
-                  <CountUp target={stat.value} />
-                  <span className="v2-stat-card__suffix">{stat.suffix}</span>
-                </div>
-                <p className="v2-stat-card__label">{stat.label}</p>
-                <p className="v2-stat-card__desc">{stat.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+          <div className="v2-section-header">
+            <span className="section-label">PROJETS SÉLECTIONNÉS</span>
+            <h2>Des interfaces conçues pour résoudre des problèmes réels</h2>
+            <p className="v2-section-intro">Une sélection de plateformes métier et de produits web sur lesquels j’ai travaillé en UX, UI Design, prototypage et collaboration front-end.</p>
+          </div>
 
-      <div className="v2-section-divider" />
-
-      {/* ===== 5. FEATURED PROJECTS ===== */}
-      <section className="v2-projects section" id="v2-projects">
-        <div className="container">
-          <motion.div
-            className="v2-projects__header"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-          >
-            <div>
-              <span className="v2-projects__label">{t('realisations.label')}</span>
-              <h2 className="v2-projects__title">{t('realisations.featuredTitle')}</h2>
-            </div>
-            <Link to="/realisations" className="v2-projects__view-all">
-              {t('realisations.featuredViewAll')} <ArrowRight size={14} />
-            </Link>
-          </motion.div>
-
-          <div className="v2-projects__grid">
-            {displayedProjets.map((projet, i) => (
-              <motion.div
+          <div className="v2-projects__list">
+            {projets.map((projet) => (
+              <motion.div 
+                className="v2-project-card"
                 key={projet.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: '-80px' }}
-                variants={fadeUp}
-                custom={i}
+                initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
               >
-                <Link to={`/projet/${projet.id}`} className="v2-project-case">
-                  <div className="v2-project-case__img-wrap">
-                    <img src={projet.cover} alt={projet.nom} className="v2-project-case__img" loading="lazy" />
-                  </div>
-                  <div className="v2-project-case__info">
-                    <div className="v2-project-case__meta">
-                      <span className="v2-project-case__meta-icon">
-                        {categoryIcon[projet.categorie] || <Monitor size={16} />}
-                      </span>
-                      <span>{projet.pays}</span><span>·</span>
-                      <span>{projet.ecrans} {t('realisations.ecrans')}</span>
-                    </div>
-                    <h3 className="v2-project-case__name">{projet.nom}</h3>
-                    <p className="v2-project-case__type">{projet.type}</p>
-                    <p className="v2-project-case__desc">{projet.description}</p>
-                    <div className="v2-project-case__techs">
-                      {projet.techno.map(tech => (
-                        <span key={tech} className="v2-project-case__tech">{tech}</span>
-                      ))}
-                    </div>
-                    <span className="v2-project-case__link">
-                      {t('realisations.voirProjet')} <ArrowRight size={14} />
-                    </span>
+                <Link to={`/projet/${projet.id}`} className="v2-project-card__visual">
+                  <div className={`v2-project-card__placeholder v2-project-card__placeholder--${projet.key}`}>
+                    {projet.nom.split(' — ')[0]}
                   </div>
                 </Link>
+                
+                <div className="v2-project-card__content">
+                  <span className="v2-project-card__org">{projet.org}</span>
+                  <h3 className="v2-project-card__title">{projet.nom}</h3>
+                  <p className="v2-project-card__desc">{projet.description}</p>
+                  
+                  <div className="v2-project-card__tags">
+                    {projet.tags.map(tag => <span key={tag} className="v2-project-card__tag">{tag}</span>)}
+                  </div>
+                  
+                  <p className="v2-project-card__infos">{projet.infos}</p>
+                  
+                  <div className="v2-project-card__cta">
+                    <Link to={`/projet/${projet.id}`} className="text-link">
+                      Voir l’étude de cas <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
               </motion.div>
             ))}
+          </div>
+          
+          <div className="v2-projects__more">
+            <Link to="/realisations" className="btn btn-secondary">Voir tous mes projets</Link>
           </div>
         </div>
       </section>
 
-      <div className="v2-section-divider" />
-
-      {/* ===== 6. SERVICES ===== */}
-      <section className="v2-services section" id="v2-services">
+      {/* ===== 4. EXPERTISES ===== */}
+      <section className="section v2-expertise" id="expertise">
         <div className="container">
-          <motion.div
-            className="v2-services__header"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+          <div className="v2-section-header text-center">
+            <span className="section-label">EXPERTISES</span>
+            <h2>Une pratique centrée sur l’expérience, renforcée par la technique</h2>
+            <p className="v2-section-intro" style={{ margin: '0 auto' }}>Mon travail combine compréhension des usages, structuration des parcours et conception d’interfaces prêtes à être développées.</p>
+          </div>
+
+          <motion.div 
+            className="v2-expertise__grid"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={staggerContainer}
           >
-            <span className="v2-services__label">{t('servicesSection.label')}</span>
-            <h2 className="v2-services__title">{t('servicesSection.title')}</h2>
-          </motion.div>
-
-          <motion.div
-            className="v2-services__grid"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
-            variants={staggerContainer}
-          >
-            {Array.isArray(serviceItems) && serviceItems.map((service, i) => (
-              <motion.div className="v2-service-card" key={i} variants={fadeUp} custom={i}>
-                <div className="v2-service-card__icon">{serviceIcons[i]}</div>
-                <h3 className="v2-service-card__title">{service.title}</h3>
-                <p className="v2-service-card__desc">{service.desc}</p>
-                <div className="v2-service-card__tags">
-                  {service.tags.map(tag => (
-                    <span key={tag} className="v2-service-card__tag">{tag}</span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      <div className="v2-section-divider" />
-
-      {/* ===== 7. STACK TECH ===== */}
-      <section className="v2-stack section" id="v2-stack">
-        <div className="container">
-          <motion.div
-            className="v2-stack__header"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-          >
-            <span className="v2-stack__label">{t('stackTech.label')}</span>
-            <h2 className="v2-stack__title">{t('stackTech.title')}</h2>
-          </motion.div>
-
-          <motion.div
-            className="v2-stack__categories"
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
-            variants={staggerContainer}
-          >
-            {Array.isArray(stackCategories) && stackCategories.map((cat, i) => (
-              <motion.div className="v2-stack__category" key={i} variants={fadeUp} custom={i}>
-                <span className="v2-stack__cat-name">{cat.name}</span>
-                <div className="v2-stack__tools">
-                  {cat.tools.map((tool, j) => (
-                    <motion.span
-                      key={tool}
-                      className="v2-stack__tool"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 + j * 0.04, duration: 0.4 }}
-                    >
-                      {tool}
-                    </motion.span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      <div className="v2-section-divider" />
-
-      {/* ===== 8. TESTIMONIAL ===== */}
-      <ParallaxSection speed={0.05} className="v2-testimonial" id="v2-testimonial">
-        <motion.div
-          className="v2-testimonial__inner container"
-          initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }}
-          variants={staggerContainer}
-        >
-          <motion.div className="v2-testimonial__mark" aria-hidden="true" variants={fadeUp}>"</motion.div>
-          <motion.blockquote className="v2-testimonial__quote" variants={fadeUp}>
-            {t('testimonial.quote')}
-          </motion.blockquote>
-          <motion.p className="v2-testimonial__author" variants={fadeUp}>{t('testimonial.author')}</motion.p>
-          <motion.p className="v2-testimonial__role" variants={fadeUp}>{t('testimonial.role')}</motion.p>
-        </motion.div>
-      </ParallaxSection>
-
-      <div className="v2-section-divider" />
-
-      {/* ===== 9. AVAILABILITY ===== */}
-      <section className="v2-availability section" id="v2-availability">
-        <div className="container">
-          <motion.div
-            className="v2-availability__header"
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-          >
-            <span className="v2-availability__label">{t('availability.label')}</span>
-            <h2 className="v2-availability__title">{t('availability.title')}</h2>
-          </motion.div>
-
-          <div className="v2-availability__grid">
-            <motion.div
-              className="v2-availability__countries"
-              initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}
-              variants={staggerContainer}
-            >
-              {Array.isArray(countries) && countries.map((country, i) => (
-                <motion.div className="v2-country" key={i} variants={fadeUp} custom={i}>
-                  <span className="v2-country__flag" role="img" aria-label={country.name}>{country.flag}</span>
-                  <span className="v2-country__name">{country.name}</span>
-                  <span className="v2-country__role">{country.role}</span>
-                </motion.div>
-              ))}
+            <motion.div className="v2-expertise-card" variants={fadeUp}>
+              <h3>UX Design et architecture</h3>
+              <p>Analyse des besoins, parcours utilisateurs, architecture de l’information, wireframes et prototypage de solutions adaptées aux contraintes métier.</p>
+              <ul>
+                <li>Parcours utilisateurs</li>
+                <li>Architecture de l’information</li>
+                <li>Wireframes</li>
+                <li>Prototypes interactifs</li>
+              </ul>
             </motion.div>
+            
+            <motion.div className="v2-expertise-card" variants={fadeUp}>
+              <h3>UI Design et design systems</h3>
+              <p>Création d’interfaces lisibles, cohérentes et accessibles, accompagnées de composants réutilisables et de règles visuelles structurées.</p>
+              <ul>
+                <li>Interfaces web et dashboards</li>
+                <li>Design systems</li>
+                <li>Responsive design</li>
+                <li>Accessibilité</li>
+              </ul>
+            </motion.div>
+            
+            <motion.div className="v2-expertise-card v2-expertise-card--minor" variants={fadeUp}>
+              <h3>Collaboration front-end</h3>
+              <p>Ma compréhension d’Angular, React, HTML et CSS facilite les échanges avec les développeurs et la conception d’interfaces réalistes.</p>
+              <ul>
+                <li>Angular</li>
+                <li>React</li>
+                <li>HTML et CSS</li>
+                <li>Handoff et contrôle qualité</li>
+              </ul>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
 
-            <motion.div
-              className="v2-availability__status"
-              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={scaleIn}
+      {/* ===== 5. MÉTHODE DE TRAVAIL ===== */}
+      <section className="section v2-method">
+        <div className="container">
+          <div className="v2-section-header">
+            <span className="section-label">MA MÉTHODE</span>
+            <h2>Une approche structurée, du besoin à l’interface</h2>
+          </div>
+
+          <motion.div 
+            className="v2-method__grid"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={staggerContainer}
+          >
+            {methodes.map((m) => (
+              <motion.div className="v2-method-step" key={m.num} variants={fadeUp}>
+                <span className="v2-method-step__num">{m.num}</span>
+                <h3 className="v2-method-step__title">{m.titre}</h3>
+                <p className="v2-method-step__text">{m.texte}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== 6. PARCOURS ET COLLABORATIONS ===== */}
+      <section className="section v2-parcours" id="parcours">
+        <div className="container">
+          <div className="v2-section-header">
+            <span className="section-label">PARCOURS</span>
+            <h2>Des expériences au croisement du design et des produits métier</h2>
+            <p className="v2-section-intro">Depuis 2018, j’interviens sur des plateformes institutionnelles, des applications métier, des produits éducatifs et des services web.</p>
+          </div>
+
+          <div className="v2-parcours__list">
+            {parcours.map((p, index) => (
+              <motion.div 
+                className="v2-parcours-item" key={index}
+                initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
+              >
+                <div className="v2-parcours-item__period">{p.periode}</div>
+                <div className="v2-parcours-item__content">
+                  <h3 className="v2-parcours-item__role">{p.role}</h3>
+                  <span className="v2-parcours-item__org">{p.org}</span>
+                  <p className="v2-parcours-item__desc">{p.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <div className="v2-parcours__more">
+            <Link to="/parcours" className="btn btn-secondary">Découvrir mon parcours</Link>
+          </div>
+
+          <div className="v2-logos">
+            <h3 className="v2-logos__title">Organisations et équipes avec lesquelles j’ai collaboré</h3>
+            <div className="v2-logos__grid">
+              {/* Using text for logos to avoid broken images if not available, as per strict instruction: "Réutiliser uniquement les logos existants et vérifiables." */}
+              <span className="v2-logo-placeholder">CORAF</span>
+              <span className="v2-logo-placeholder">CETUD</span>
+              <span className="v2-logo-placeholder">LiveLearn</span>
+              <span className="v2-logo-placeholder">Trésor Public</span>
+              <span className="v2-logo-placeholder">YUX Design</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== 7. À PROPOS ===== */}
+      <section className="section v2-about" id="about">
+        <div className="container">
+          <div className="v2-about__grid">
+            <motion.div 
+              className="v2-about__content"
+              initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
             >
-              <div className="v2-availability__remote-badge">
-                <span className="v2-hero__available-dot" />
-                {t('availability.remote')}
+              <span className="section-label">À PROPOS</span>
+              <h2>Concevoir avec clarté, réalisme et attention aux détails</h2>
+              
+              <div className="v2-about__text">
+                <p>Je suis Seydou Diallo, UX/UI Designer basé à Dakar. Depuis 2018, je conçois des interfaces et des parcours pour des plateformes web, des produits métier et des services numériques.</p>
+                <p>J’accorde une attention particulière à la compréhension du contexte, à la lisibilité des informations et à la cohérence des composants. Ma pratique du front-end m’aide également à anticiper les contraintes techniques et à faciliter l’intégration des interfaces.</p>
+                <p>Je travaille avec des équipes locales et internationales, principalement à distance.</p>
               </div>
-              <h3 className="v2-availability__remote-title">{t('availability.remote')}</h3>
-              <p className="v2-availability__remote-desc">{t('availability.remoteDesc')}</p>
-              <div className="v2-availability__info-row">
-                <span className="v2-availability__info-label">{t('availability.statusLabel')}</span>
-                <span className="v2-availability__info-value">{t('availability.statusValue')}</span>
+
+              <ul className="v2-about__list">
+                <li>UX/UI Design</li>
+                <li>Produits web et plateformes métier</li>
+                <li>Design systems</li>
+                <li>Prototypage</li>
+                <li>Collaboration front-end</li>
+                <li>Travail en remote & présentiel</li>
+              </ul>
+              
+              <div className="v2-about__actions">
+                <Link to="/parcours" className="btn btn-primary">Voir mon parcours</Link>
+                <a href="/cv-seydou-diallo.pdf" download="CV_Seydou_DIALLO_FR.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">Télécharger mon CV</a>
               </div>
-              <div className="v2-availability__info-row">
-                <span className="v2-availability__info-label">{t('availability.typeLabel')}</span>
-                <span className="v2-availability__info-value">{t('availability.typeValue')}</span>
-              </div>
+            </motion.div>
+            
+            <motion.div 
+              className="v2-about__visual"
+              initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
+            >
+              <img src="/designer_workspace.png" alt="Espace de travail de Seydou Diallo" loading="lazy" className="v2-about__img" style={{ borderRadius: 'var(--radius-lg)', width: '100%', objectFit: 'cover', aspectRatio: '4/3', border: '1px solid var(--color-border)' }} />
             </motion.div>
           </div>
         </div>
       </section>
 
-      <div className="v2-section-divider" />
-
-      {/* ===== 10. CTA MEGA ===== */}
-      <section className="v2-cta-mega" id="v2-cta">
-        <div className="v2-cta-mega__glow" aria-hidden="true" />
-        <motion.div
-          className="v2-cta-mega__inner container"
-          initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }}
-          variants={staggerContainer}
-        >
-          <motion.span className="v2-cta-mega__label" variants={fadeUp}>{t('ctaMega.label')}</motion.span>
-          <motion.h2 className="v2-cta-mega__title" variants={fadeUp}>
-            {t('ctaMega.title1')}<br /><span>{t('ctaMega.title2')}</span>
-          </motion.h2>
-          <motion.p className="v2-cta-mega__subtitle" variants={fadeUp}>{t('ctaMega.subtitle')}</motion.p>
-
-          <motion.div className="v2-cta-mega__channels" variants={fadeUp}>
-            <a href="mailto:seydoukellel@gmail.com" className="v2-cta-mega__channel">
-              <span className="v2-cta-mega__channel-icon"><Mail size={20} /></span>
-              <span className="v2-cta-mega__channel-label">{t('ctaMega.emailLabel')}</span>
-              <span className="v2-cta-mega__channel-value">seydoukellel@gmail.com</span>
-            </a>
-            <a href="tel:+221774931084" className="v2-cta-mega__channel">
-              <span className="v2-cta-mega__channel-icon"><Phone size={20} /></span>
-              <span className="v2-cta-mega__channel-label">{t('ctaMega.phoneLabel')}</span>
-              <span className="v2-cta-mega__channel-value">+221 77 493 10 84</span>
-            </a>
-            <a
-              href="https://www.linkedin.com/in/seydou-diallo-front-end-developpeur-designer-ux-ui/"
-              target="_blank" rel="noopener noreferrer"
-              className="v2-cta-mega__channel"
-            >
-              <span className="v2-cta-mega__channel-icon"><Link2 size={20} /></span>
-              <span className="v2-cta-mega__channel-label">{t('ctaMega.linkedinLabel')}</span>
-              <span className="v2-cta-mega__channel-value">Seydou Diallo</span>
-            </a>
+      {/* ===== 8. CONTACT ===== */}
+      <section className="section v2-contact" id="contact">
+        <div className="container">
+          <motion.div 
+            className="v2-contact__card"
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
+          >
+            <h2>Vous recherchez un UX/UI Designer capable de comprendre les enjeux produit et techniques ?</h2>
+            <p>Je suis disponible pour échanger autour d’une opportunité, d’une mission ou d’un produit nécessitant une expérience utilisateur claire et une interface soignée.</p>
+            
+            <div className="v2-contact__actions">
+              <Link to="/contact" className="btn btn-primary">Me contacter</Link>
+            </div>
+            
+            <div className="v2-contact__infos">
+              <span className="v2-contact__info-item"><Mail size={16} /> seydoukellel@gmail.com</span>
+              <span className="v2-contact__info-item"><MapPin size={16} /> Basé à Dakar · Disponible en remote & présentiel</span>
+            </div>
           </motion.div>
-
-          <motion.div variants={fadeUp}>
-            <Link to="/contact" className="v2-cta-mega__btn">
-              {t('ctaMega.btn')} <ArrowRight size={18} />
-            </Link>
-          </motion.div>
-        </motion.div>
+        </div>
       </section>
+      
     </div>
   )
 }
