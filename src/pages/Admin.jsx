@@ -2,7 +2,26 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { projets as staticProjets } from '../data/projets'
 import { experiences as staticExperiences, formations as staticFormations } from '../data/parcours'
-import { Plus, Pencil, Trash2, ExternalLink, X, Save, ArrowUp, ArrowDown, Crop } from 'lucide-react'
+import { 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  ExternalLink, 
+  X, 
+  Save, 
+  ArrowUp, 
+  ArrowDown, 
+  Crop, 
+  FolderKanban, 
+  Briefcase, 
+  BarChart3, 
+  LogOut, 
+  Image as ImageIcon,
+  Sparkles,
+  Search,
+  CheckCircle2,
+  GraduationCap
+} from 'lucide-react'
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../utils/cropImage'
 import StatsWidget from '../components/StatsWidget'
@@ -15,6 +34,7 @@ export default function Admin() {
   const [experiences, setExperiences] = useState([])
   const [formations, setFormations] = useState([])
   const [activeTab, setActiveTab] = useState('projets')
+  const [projectSearch, setProjectSearch] = useState('')
   
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
@@ -64,6 +84,11 @@ export default function Admin() {
     }
   }, [])
 
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token')
+    navigate('/login')
+  }
+
   const fetchData = async () => {
     try {
       // Charger les projets
@@ -98,7 +123,7 @@ export default function Admin() {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
       try {
         await fetch(`${API_URL}/api/projets/${id}`, { method: 'DELETE' })
-        fetchData() // Recharger les données
+        fetchData()
       } catch (err) {
         console.error(err)
       }
@@ -110,7 +135,7 @@ export default function Admin() {
       setEditingProject(project)
       setProjectFormData({
         ...project,
-        techno: project.techno.join(', ')
+        techno: Array.isArray(project.techno) ? project.techno.join(', ') : (project.techno || '')
       })
     } else {
       setEditingProject(null)
@@ -153,7 +178,6 @@ export default function Admin() {
         croppedAreaPixels,
         0
       )
-      // Convert blob to file so our upload logic still works
       const croppedFile = new File([croppedImageBlob], "cropped_image.jpg", { type: "image/jpeg" })
       setSelectedFile(croppedFile)
       setIsCropperOpen(false)
@@ -165,7 +189,6 @@ export default function Admin() {
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
-      // Use FileReader to display it in the Cropper
       const reader = new FileReader()
       reader.addEventListener('load', () => {
         setImageSrc(reader.result?.toString() || null)
@@ -245,12 +268,12 @@ export default function Admin() {
 
     if (targetIndex < 0 || targetIndex >= newList.length) return
 
-    // Swap
     const temp = newList[index]
     newList[index] = newList[targetIndex]
     newList[targetIndex] = temp
 
-    // Préparer les données
+    setProjets(newList)
+
     const itemsToUpdate = newList.map((item, idx) => ({
       id: item.id,
       order: idx + 1
@@ -269,22 +292,16 @@ export default function Admin() {
   }
 
   // Handlers Parcours
-  const handleDeleteParcours = async (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
-      try {
-        await fetch(`${API_URL}/api/parcours/${id}`, { method: 'DELETE' })
-        fetchData()
-      } catch (err) {
-        console.error(err)
-      }
-    }
-  }
-
   const handleOpenParcoursForm = (item = null, type = 'experience') => {
     setParcoursType(type)
     if (item) {
       setEditingParcours(item)
-      setParcoursFormData({ ...item })
+      setParcoursFormData({
+        periode: item.periode,
+        entreprise: item.entreprise,
+        poste: item.poste,
+        description: item.description
+      })
     } else {
       setEditingParcours(null)
       setParcoursFormData({
@@ -309,14 +326,14 @@ export default function Admin() {
 
   const handleSaveParcours = async (e) => {
     e.preventDefault()
-    const itemToSave = {
+    const parcoursToSave = {
       ...parcoursFormData,
       type: parcoursType
     }
 
     try {
       const url = editingParcours 
-        ? `${API_URL}/api/parcours/${editingParcours._id}` // MongoDB utilise _id
+        ? `${API_URL}/api/parcours/${editingParcours._id}`
         : `${API_URL}/api/parcours`
       
       const method = editingParcours ? 'PUT' : 'POST'
@@ -324,7 +341,7 @@ export default function Admin() {
       await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(itemToSave)
+        body: JSON.stringify(parcoursToSave)
       })
 
       fetchData()
@@ -334,9 +351,20 @@ export default function Admin() {
     }
   }
 
+  const handleDeleteParcours = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
+      try {
+        await fetch(`${API_URL}/api/parcours/${id}`, { method: 'DELETE' })
+        fetchData()
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
   const handleMoveParcours = async (id, type, direction) => {
     const list = type === 'experience' ? experiences : formations
-    const index = list.findIndex(item => item._id === id)
+    const index = list.findIndex(p => p._id === id)
     if (index === -1) return
 
     const newList = [...list]
@@ -344,12 +372,10 @@ export default function Admin() {
 
     if (targetIndex < 0 || targetIndex >= newList.length) return
 
-    // Swap
     const temp = newList[index]
     newList[index] = newList[targetIndex]
     newList[targetIndex] = temp
 
-    // Préparer les données pour l'API de réordonnancement
     const itemsToUpdate = newList.map((item, idx) => ({
       id: item._id,
       order: idx + 1
@@ -367,194 +393,367 @@ export default function Admin() {
     }
   }
 
+  const filteredProjets = projets.filter(p => {
+    if (!projectSearch) return true
+    const q = projectSearch.toLowerCase()
+    return (
+      (p.nom && p.nom.toLowerCase().includes(q)) ||
+      (p.type && p.type.toLowerCase().includes(q)) ||
+      (p.categorie && p.categorie.toLowerCase().includes(q)) ||
+      (p.pays && p.pays.toLowerCase().includes(q))
+    )
+  })
+
   return (
     <div className="admin-page">
-      <div className="page-header-editorial">
-        <span className="section-label">BACK-OFFICE</span>
-        <h1 className="page-header-editorial__title">Tableau de bord</h1>
-        <div className="page-header-editorial__line" aria-hidden="true" />
-        <p className="page-header-editorial__subtitle">
-          GÉREZ VOS RÉALISATIONS ET VOTRE PARCOURS.
-        </p>
-      </div>
+      
+      {/* ===== 1. HERO / HEADER ADMIN ===== */}
+      <section className="admin-hero">
+        <div className="container">
+          <div className="admin-hero__wrapper">
+            <div className="admin-hero__content">
+              <span className="admin-hero__badge">
+                <Sparkles size={13} aria-hidden="true" />
+                ESPACE ADMINISTRATION
+              </span>
+              <h1 className="admin-hero__title">Tableau de bord</h1>
+              <p className="admin-hero__desc">
+                Gérez vos réalisations, votre parcours et analysez la fréquentation du portfolio.
+              </p>
+            </div>
 
-      <div className="container">
-        <div className="admin-nav">
-          <button 
-            className={`admin-nav__btn ${activeTab === 'projets' ? 'active' : ''}`}
-            onClick={() => setActiveTab('projets')}
-          >
-            Projets
-          </button>
-          <button 
-            className={`admin-nav__btn ${activeTab === 'parcours' ? 'active' : ''}`}
-            onClick={() => setActiveTab('parcours')}
-          >
-            Parcours
-          </button>
-          <button 
-            className={`admin-nav__btn ${activeTab === 'stats' ? 'active' : ''}`}
-            onClick={() => setActiveTab('stats')}
-          >
-            Statistiques
-          </button>
+            <div className="admin-hero__actions">
+              <div className="admin-hero__stats-pill">
+                <span className="stat-item"><strong>{projets.length}</strong> projets</span>
+                <span className="stat-sep">·</span>
+                <span className="stat-item"><strong>{experiences.length}</strong> expériences</span>
+              </div>
+              <button 
+                onClick={handleLogout} 
+                className="btn-admin-logout"
+                title="Se déconnecter de l'administration"
+              >
+                <LogOut size={15} />
+                <span>Déconnexion</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Onglets de navigation principaux */}
+          <div className="admin-tabs-nav">
+            <button 
+              className={`admin-tab-btn ${activeTab === 'projets' ? 'admin-tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('projets')}
+            >
+              <FolderKanban size={16} />
+              <span>Projets</span>
+              <span className="tab-count">{projets.length}</span>
+            </button>
+            <button 
+              className={`admin-tab-btn ${activeTab === 'parcours' ? 'admin-tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('parcours')}
+            >
+              <Briefcase size={16} />
+              <span>Parcours & Formations</span>
+              <span className="tab-count">{experiences.length + formations.length}</span>
+            </button>
+            <button 
+              className={`admin-tab-btn ${activeTab === 'stats' ? 'admin-tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('stats')}
+            >
+              <BarChart3 size={16} />
+              <span>Statistiques</span>
+            </button>
+          </div>
         </div>
+      </section>
 
-        {/* ONGLET STATISTIQUES */}
+      <div className="container admin-container">
+
+        {/* ============================================================
+            ONGLET 1 : STATISTIQUES
+            ============================================================ */}
         {activeTab === 'stats' && (
-          <div className="admin-content animate-fade-up">
-            <div className="admin-content__header">
-              <h2>Statistiques de Visites</h2>
+          <div className="admin-card-panel animate-fade-up">
+            <div className="admin-panel__header">
+              <div>
+                <h2>Statistiques de Visites</h2>
+                <p className="admin-panel__sub">Analyse du trafic et interactions sur vos projets.</p>
+              </div>
             </div>
             <StatsWidget />
           </div>
         )}
 
-        {/* ONGLET PROJETS */}
+        {/* ============================================================
+            ONGLET 2 : PROJETS (LISTE)
+            ============================================================ */}
         {activeTab === 'projets' && !isProjectFormOpen && (
-          <div className="admin-content animate-fade-up">
-            <div className="admin-content__header">
-              <h2>Gestion des Projets</h2>
-              <button className="btn btn-primary" onClick={() => handleOpenProjectForm()}>
-                <Plus size={16} />
-                Ajouter un projet
-              </button>
+          <div className="admin-card-panel animate-fade-up">
+            <div className="admin-panel__header">
+              <div>
+                <h2>Gestion des Projets</h2>
+                <p className="admin-panel__sub">Ajoutez, modifiez, réorganisez ou supprimez vos études de cas.</p>
+              </div>
+              <div className="admin-panel__actions">
+                <div className="admin-search-wrap">
+                  <Search size={15} className="search-icon" />
+                  <input 
+                    type="text" 
+                    placeholder="Filtrer par nom, pays, catégorie..." 
+                    value={projectSearch} 
+                    onChange={(e) => setProjectSearch(e.target.value)}
+                    className="admin-search-input"
+                  />
+                  {projectSearch && (
+                    <button onClick={() => setProjectSearch('')} className="search-clear-btn">
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+                <button className="btn btn-primary" onClick={() => handleOpenProjectForm()}>
+                  <Plus size={16} />
+                  <span>Nouveau projet</span>
+                </button>
+              </div>
             </div>
 
             <div className="admin-table-wrapper">
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Projet</th>
-                    <th>Catégorie</th>
-                    <th>Pays</th>
-                    <th>Actions</th>
+                    <th style={{ width: '45%' }}>Projet</th>
+                    <th style={{ width: '15%' }}>Catégorie</th>
+                    <th style={{ width: '15%' }}>Pays</th>
+                    <th style={{ width: '25%', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projets.map((projet, index) => (
-                    <tr key={projet.id}>
-                      <td>
-                        <div className="admin-table__projet-name">
-                          <strong>{projet.nom} {projet.showInHome && <span title="Affiché sur l'accueil">⭐</span>}</strong>
-                          <span>{projet.type}</span>
-                        </div>
-                      </td>
-                      <td><span className="tag">{projet.categorie}</span></td>
-                      <td>{projet.pays}</td>
-                      <td>
-                        <div className="admin-table__actions">
-                          <button 
-                            className="action-btn" 
-                            title="Monter" 
-                            onClick={() => handleMoveProject(projet.id, 'up')}
-                            disabled={index === 0}
-                            style={{ opacity: index === 0 ? 0.3 : 1, cursor: index === 0 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowUp size={16} />
-                          </button>
-                          <button 
-                            className="action-btn" 
-                            title="Descendre" 
-                            onClick={() => handleMoveProject(projet.id, 'down')}
-                            disabled={index === projets.length - 1}
-                            style={{ opacity: index === projets.length - 1 ? 0.3 : 1, cursor: index === projets.length - 1 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowDown size={16} />
-                          </button>
-                          <button className="action-btn" title="Modifier" onClick={() => handleOpenProjectForm(projet)}>
-                            <Pencil size={16} />
-                          </button>
-                          <button 
-                            className="action-btn action-btn--danger" 
-                            title="Supprimer"
-                            onClick={() => handleDeleteProject(projet.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          {projet.live && (
-                            <a href={projet.live} target="_blank" rel="noopener noreferrer" className="action-btn" title="Voir le site">
-                              <ExternalLink size={16} />
-                            </a>
-                          )}
-                        </div>
+                  {filteredProjets.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="admin-empty-row">
+                        Aucun projet ne correspond à votre recherche.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredProjets.map((projet, index) => (
+                      <tr key={projet.id} className="admin-table-row">
+                        <td>
+                          <div className="admin-project-cell">
+                            <div className="admin-project-thumb">
+                              {projet.cover ? (
+                                <img src={projet.cover} alt={projet.nom} />
+                              ) : (
+                                <ImageIcon size={18} />
+                              )}
+                            </div>
+                            <div className="admin-project-info">
+                              <div className="admin-project-name-wrap">
+                                <span className="admin-project-name">{projet.nom}</span>
+                                {projet.showInHome && (
+                                  <span className="admin-badge-home" title="Mis en avant sur la Home Page">
+                                    <Sparkles size={11} /> Accueil
+                                  </span>
+                                )}
+                              </div>
+                              <span className="admin-project-type">{projet.type}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`admin-category-pill admin-category-pill--${projet.categorie || 'web'}`}>
+                            {projet.categorie}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="admin-country-cell">{projet.pays || '—'}</span>
+                        </td>
+                        <td>
+                          <div className="admin-actions-cell">
+                            <button 
+                              className="admin-action-btn" 
+                              title="Monter d'une position" 
+                              onClick={() => handleMoveProject(projet.id, 'up')}
+                              disabled={index === 0}
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn" 
+                              title="Descendre d'une position" 
+                              onClick={() => handleMoveProject(projet.id, 'down')}
+                              disabled={index === projets.length - 1}
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--edit" 
+                              title="Modifier ce projet" 
+                              onClick={() => handleOpenProjectForm(projet)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--delete" 
+                              title="Supprimer ce projet"
+                              onClick={() => handleDeleteProject(projet.id)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            {projet.live && (
+                              <a 
+                                href={projet.live} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="admin-action-btn admin-action-btn--link" 
+                                title="Voir le site en direct"
+                              >
+                                <ExternalLink size={14} />
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* FORMULAIRE PROJET */}
+        {/* ============================================================
+            FORMULAIRE PROJET (AJOUT / MODIFICATION)
+            ============================================================ */}
         {activeTab === 'projets' && isProjectFormOpen && (
-          <div className="admin-content animate-fade-up">
-            <div className="admin-content__header">
-              <h2>{editingProject ? 'Modifier le projet' : 'Ajouter un projet'}</h2>
-              <button className="btn btn-outline" onClick={handleCloseProjectForm}>
-                <X size={16} />
-                Annuler
+          <div className="admin-card-panel animate-fade-up">
+            <div className="admin-panel__header">
+              <div>
+                <h2>{editingProject ? 'Modifier le projet' : 'Ajouter un nouveau projet'}</h2>
+                <p className="admin-panel__sub">Remplissez les informations de l'étude de cas.</p>
+              </div>
+              <button className="btn btn-secondary" onClick={handleCloseProjectForm}>
+                <X size={15} />
+                <span>Fermer</span>
               </button>
             </div>
 
             <form className="admin-form" onSubmit={handleSaveProject}>
               <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label">Nom du projet *</label>
-                  <input type="text" name="nom" className="form-input" value={projectFormData.nom} onChange={handleProjectInputChange} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Type de projet *</label>
-                  <input type="text" name="type" className="form-input" placeholder="Ex: Site web, App mobile" value={projectFormData.type} onChange={handleProjectInputChange} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Catégorie *</label>
-                  <select name="categorie" className="form-input" value={projectFormData.categorie} onChange={handleProjectInputChange} required>
-                    <option value="web">Web</option>
-                    <option value="mobile">Mobile</option>
-                    <option value="dashboard">Dashboard</option>
-                    <option value="dev">Front / Dev Complet</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Pays</label>
-                  <input type="text" name="pays" className="form-input" value={projectFormData.pays} onChange={handleProjectInputChange} />
+                  <label className="form-label">Nom du projet <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="nom" 
+                    className="form-input" 
+                    placeholder="Ex: CETUD — Transport"
+                    value={projectFormData.nom} 
+                    onChange={handleProjectInputChange} 
+                    required 
+                  />
                 </div>
 
-                {/* Nombre d'écrans — masqué pour la catégorie dev */}
+                <div className="form-group">
+                  <label className="form-label">Type de projet <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="type" 
+                    className="form-input" 
+                    placeholder="Ex: Web App · Dashboard multi-rôles" 
+                    value={projectFormData.type} 
+                    onChange={handleProjectInputChange} 
+                    required 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Catégorie <span className="req">*</span></label>
+                  <select 
+                    name="categorie" 
+                    className="form-input" 
+                    value={projectFormData.categorie} 
+                    onChange={handleProjectInputChange} 
+                    required
+                  >
+                    <option value="dashboard">Dashboard / Métier</option>
+                    <option value="web">Web & Digital</option>
+                    <option value="mobile">Application Mobile</option>
+                    <option value="dev">Front-end & Intégration</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Pays</label>
+                  <input 
+                    type="text" 
+                    name="pays" 
+                    className="form-input" 
+                    placeholder="Ex: Sénégal, France, Pays-Bas" 
+                    value={projectFormData.pays} 
+                    onChange={handleProjectInputChange} 
+                  />
+                </div>
+
+                {/* Nombre d'écrans */}
                 {projectFormData.categorie !== 'dev' && (
                   <div className="form-group">
                     <label className="form-label">Nombre d'écrans</label>
-                    <input type="text" name="ecrans" className="form-input" placeholder="Ex: 12, +50" value={projectFormData.ecrans} onChange={handleProjectInputChange} />
+                    <input 
+                      type="text" 
+                      name="ecrans" 
+                      className="form-input" 
+                      placeholder="Ex: 19, +50" 
+                      value={projectFormData.ecrans} 
+                      onChange={handleProjectInputChange} 
+                    />
                   </div>
                 )}
 
                 <div className="form-group">
                   <label className="form-label">Technologies (séparées par des virgules)</label>
-                  <input type="text" name="techno" className="form-input" placeholder="Ex: React, Node.js, CSS" value={projectFormData.techno} onChange={handleProjectInputChange} />
+                  <input 
+                    type="text" 
+                    name="techno" 
+                    className="form-input" 
+                    placeholder="Ex: Figma, Angular, Design System, Responsive" 
+                    value={projectFormData.techno} 
+                    onChange={handleProjectInputChange} 
+                  />
                 </div>
 
-                {/* Lien Live — obligatoire pour dev */}
+                <div className="form-group">
+                  <label className="form-label">Rôle <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="role" 
+                    className="form-input" 
+                    placeholder="Ex: Lead UX/UI Designer & Front-end" 
+                    value={projectFormData.role} 
+                    onChange={handleProjectInputChange} 
+                    required 
+                  />
+                </div>
+
+                {/* Lien Live */}
                 <div className="form-group">
                   <label className="form-label">
-                    Lien du site {projectFormData.categorie === 'dev' ? <span style={{color:'var(--color-gold)'}}>*</span> : ''}
+                    Lien du site {projectFormData.categorie === 'dev' && <span className="req">*</span>}
                   </label>
                   <input
                     type="url"
                     name="live"
                     className="form-input"
-                    placeholder="https://monsite.com"
+                    placeholder="https://exemple.com"
                     value={projectFormData.live}
                     onChange={handleProjectInputChange}
                     required={projectFormData.categorie === 'dev'}
                   />
                 </div>
 
-                {/* URL du Design — uniquement pour dev, optionnel */}
+                {/* URL du Design */}
                 {projectFormData.categorie === 'dev' && (
                   <div className="form-group">
-                    <label className="form-label">URL du Design <span style={{fontSize:'11px', color:'var(--color-muted)', fontWeight:400}}>(Figma ou autre — optionnel)</span></label>
+                    <label className="form-label">URL du Design (Figma - optionnel)</label>
                     <input
                       type="url"
                       name="designUrl"
@@ -566,37 +765,57 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* Figma Embed — masqué pour dev (pas de maquettes) */}
+                {/* Figma Embed */}
                 {projectFormData.categorie !== 'dev' && (
                   <div className="form-group">
-                    <label className="form-label">Lien Figma Embed</label>
-                    <input type="url" name="figma" className="form-input" placeholder="https://www.figma.com/embed?..." value={projectFormData.figma} onChange={handleProjectInputChange} />
+                    <label className="form-label">Lien Figma Embed (Prototype)</label>
+                    <input 
+                      type="url" 
+                      name="figma" 
+                      className="form-input" 
+                      placeholder="https://www.figma.com/embed?..." 
+                      value={projectFormData.figma} 
+                      onChange={handleProjectInputChange} 
+                    />
                   </div>
                 )}
-                <div className="form-group">
-                  <label className="form-label">Rôle *</label>
-                  <input type="text" name="role" className="form-input" value={projectFormData.role} onChange={handleProjectInputChange} required />
+              </div>
+
+              {/* Upload Image Cover */}
+              <div className="form-group form-group--cover">
+                <label className="form-label">Image Cover (16:10 recommandé)</label>
+                <div className="admin-cover-upload-box">
+                  <div className="admin-cover-preview">
+                    {selectedFile ? (
+                      <div className="cover-tag cover-tag--new">
+                        <CheckCircle2 size={14} /> Nouvelle image prête ({selectedFile.name})
+                      </div>
+                    ) : projectFormData.cover ? (
+                      <img src={projectFormData.cover} alt="Cover actuelle" className="cover-thumb" />
+                    ) : (
+                      <span className="no-cover">Aucune image</span>
+                    )}
+                  </div>
+                  
+                  <div className="admin-cover-controls">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileChange} 
+                      id="cover-file-input"
+                      className="file-input-hidden"
+                    />
+                    <label htmlFor="cover-file-input" className="btn btn-secondary btn-sm">
+                      <ImageIcon size={14} />
+                      Choisir une image & recadrer
+                    </label>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Image Cover (Optionnel)</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
-                    style={{ marginBottom: '10px' }} 
-                  />
-                  {projectFormData.cover && !selectedFile && (
-                    <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
-                      Image actuelle : <img src={projectFormData.cover} alt="Cover actuelle" style={{ height: '40px', verticalAlign: 'middle', marginLeft: '10px', borderRadius: '4px' }} />
-                    </div>
-                  )}
-                  {selectedFile && (
-                    <div style={{ fontSize: '12px', color: 'var(--color-primary)' }}>
-                      Nouvelle image prête à être téléchargée : {selectedFile.name}
-                    </div>
-                  )}
-                </div>
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              </div>
+
+              {/* Toggle Home Page */}
+              <div className="form-toggle-wrap">
+                <label className="toggle-switch">
                   <input 
                     type="checkbox" 
                     name="showInHome" 
@@ -604,223 +823,350 @@ export default function Admin() {
                     checked={projectFormData.showInHome} 
                     onChange={handleProjectInputChange} 
                   />
-                  <label htmlFor="showInHome" className="form-label" style={{ margin: 0, cursor: 'pointer' }}>Afficher ce projet sur la page d'accueil</label>
-                </div>
+                  <span className="toggle-slider"></span>
+                </label>
+                <label htmlFor="showInHome" className="toggle-label">
+                  <strong>Mettre en avant sur la page d'accueil (Home Page)</strong>
+                  <span>Ce projet sera affiché dans la section "Projets Sélectionnés" de la page d'accueil.</span>
+                </label>
               </div>
 
               <div className="form-group">
                 <label className="form-label">Description courte</label>
-                <textarea name="description" className="form-textarea" value={projectFormData.description} onChange={handleProjectInputChange} />
+                <textarea 
+                  name="description" 
+                  className="form-textarea" 
+                  rows={3}
+                  placeholder="Résumé du projet et de la valeur apportée..."
+                  value={projectFormData.description} 
+                  onChange={handleProjectInputChange} 
+                />
               </div>
 
               <div className="form-group">
                 <label className="form-label">Contexte du projet</label>
-                <textarea name="contexte" className="form-textarea" value={projectFormData.contexte} onChange={handleProjectInputChange} />
+                <textarea 
+                  name="contexte" 
+                  className="form-textarea" 
+                  rows={3}
+                  placeholder="Objectifs métier, utilisateurs cibles et défis à relever..."
+                  value={projectFormData.contexte} 
+                  onChange={handleProjectInputChange} 
+                />
               </div>
 
-              <div className="form-actions">
+              <div className="form-actions-bar">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseProjectForm}>
+                  Annuler
+                </button>
                 <button type="submit" className="btn btn-primary">
                   <Save size={16} />
-                  Enregistrer le projet
+                  <span>Enregistrer le projet</span>
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* ONGLET PARCOURS */}
+        {/* ============================================================
+            ONGLET 3 : PARCOURS & FORMATIONS (LISTE)
+            ============================================================ */}
         {activeTab === 'parcours' && !isParcoursFormOpen && (
-          <div className="admin-content animate-fade-up">
-            {/* Expériences */}
-            <div className="admin-content__header">
-              <h2>Expériences Professionnelles</h2>
-              <button className="btn btn-primary" onClick={() => handleOpenParcoursForm(null, 'experience')}>
-                <Plus size={16} />
-                Ajouter une expérience
-              </button>
-            </div>
+          <div className="admin-parcours-stack animate-fade-up">
             
-            <div className="admin-table-wrapper" style={{marginBottom: '3rem'}}>
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Période</th>
-                    <th>Entreprise</th>
-                    <th>Poste</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {experiences.map((item, index) => (
-                    <tr key={item._id}>
-                      <td>{item.periode}</td>
-                      <td><strong>{item.entreprise}</strong></td>
-                      <td>{item.poste}</td>
-                      <td>
-                        <div className="admin-table__actions">
-                          <button 
-                            className="action-btn" 
-                            title="Monter" 
-                            onClick={() => handleMoveParcours(item._id, 'experience', 'up')}
-                            disabled={index === 0}
-                            style={{ opacity: index === 0 ? 0.3 : 1, cursor: index === 0 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowUp size={16} />
-                          </button>
-                          <button 
-                            className="action-btn" 
-                            title="Descendre" 
-                            onClick={() => handleMoveParcours(item._id, 'experience', 'down')}
-                            disabled={index === experiences.length - 1}
-                            style={{ opacity: index === experiences.length - 1 ? 0.3 : 1, cursor: index === experiences.length - 1 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowDown size={16} />
-                          </button>
-                          <button className="action-btn" title="Modifier" onClick={() => handleOpenParcoursForm(item, 'experience')}>
-                            <Pencil size={16} />
-                          </button>
-                          <button className="action-btn action-btn--danger" title="Supprimer" onClick={() => handleDeleteParcours(item._id)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+            {/* 1. Expériences */}
+            <div className="admin-card-panel">
+              <div className="admin-panel__header">
+                <div>
+                  <h2>Expériences Professionnelles</h2>
+                  <p className="admin-panel__sub">Vos rôles en entreprise, missions freelance et collaborations.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => handleOpenParcoursForm(null, 'experience')}>
+                  <Plus size={16} />
+                  <span>Ajouter une expérience</span>
+                </button>
+              </div>
+              
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '20%' }}>Période</th>
+                      <th style={{ width: '25%' }}>Entreprise</th>
+                      <th style={{ width: '35%' }}>Poste & Description</th>
+                      <th style={{ width: '20%', textAlign: 'right' }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {experiences.map((item, index) => (
+                      <tr key={item._id} className="admin-table-row">
+                        <td>
+                          <span className="admin-period-badge">{item.periode}</span>
+                        </td>
+                        <td>
+                          <strong className="admin-company-name">{item.entreprise}</strong>
+                        </td>
+                        <td>
+                          <div className="admin-role-info">
+                            <span className="admin-role-title">{item.poste}</span>
+                            <p className="admin-role-desc">{item.description}</p>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="admin-actions-cell">
+                            <button 
+                              className="admin-action-btn" 
+                              title="Monter" 
+                              onClick={() => handleMoveParcours(item._id, 'experience', 'up')}
+                              disabled={index === 0}
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn" 
+                              title="Descendre" 
+                              onClick={() => handleMoveParcours(item._id, 'experience', 'down')}
+                              disabled={index === experiences.length - 1}
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--edit" 
+                              title="Modifier" 
+                              onClick={() => handleOpenParcoursForm(item, 'experience')}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--delete" 
+                              title="Supprimer" 
+                              onClick={() => handleDeleteParcours(item._id)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {/* Formations */}
-            <div className="admin-content__header">
-              <h2>Formations</h2>
-              <button className="btn btn-primary" onClick={() => handleOpenParcoursForm(null, 'formation')}>
-                <Plus size={16} />
-                Ajouter une formation
-              </button>
-            </div>
-            
-            <div className="admin-table-wrapper">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Période</th>
-                    <th>Établissement</th>
-                    <th>Diplôme/Titre</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formations.map((item, index) => (
-                    <tr key={item._id}>
-                      <td>{item.periode}</td>
-                      <td><strong>{item.entreprise}</strong></td>
-                      <td>{item.poste}</td>
-                      <td>
-                        <div className="admin-table__actions">
-                          <button 
-                            className="action-btn" 
-                            title="Monter" 
-                            onClick={() => handleMoveParcours(item._id, 'formation', 'up')}
-                            disabled={index === 0}
-                            style={{ opacity: index === 0 ? 0.3 : 1, cursor: index === 0 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowUp size={16} />
-                          </button>
-                          <button 
-                            className="action-btn" 
-                            title="Descendre" 
-                            onClick={() => handleMoveParcours(item._id, 'formation', 'down')}
-                            disabled={index === formations.length - 1}
-                            style={{ opacity: index === formations.length - 1 ? 0.3 : 1, cursor: index === formations.length - 1 ? 'not-allowed' : 'pointer' }}
-                          >
-                            <ArrowDown size={16} />
-                          </button>
-                          <button className="action-btn" title="Modifier" onClick={() => handleOpenParcoursForm(item, 'formation')}>
-                            <Pencil size={16} />
-                          </button>
-                          <button className="action-btn action-btn--danger" title="Supprimer" onClick={() => handleDeleteParcours(item._id)}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+            {/* 2. Formations */}
+            <div className="admin-card-panel" style={{ marginTop: '32px' }}>
+              <div className="admin-panel__header">
+                <div>
+                  <h2>Formations & Diplômes</h2>
+                  <p className="admin-panel__sub">Certifications et parcours académique.</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => handleOpenParcoursForm(null, 'formation')}>
+                  <Plus size={16} />
+                  <span>Ajouter une formation</span>
+                </button>
+              </div>
+              
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '20%' }}>Période</th>
+                      <th style={{ width: '25%' }}>Établissement</th>
+                      <th style={{ width: '35%' }}>Diplôme / Titre</th>
+                      <th style={{ width: '20%', textAlign: 'right' }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {formations.map((item, index) => (
+                      <tr key={item._id} className="admin-table-row">
+                        <td>
+                          <span className="admin-period-badge">{item.periode}</span>
+                        </td>
+                        <td>
+                          <strong className="admin-company-name">{item.entreprise}</strong>
+                        </td>
+                        <td>
+                          <div className="admin-role-info">
+                            <span className="admin-role-title">{item.poste}</span>
+                            <p className="admin-role-desc">{item.description}</p>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="admin-actions-cell">
+                            <button 
+                              className="admin-action-btn" 
+                              title="Monter" 
+                              onClick={() => handleMoveParcours(item._id, 'formation', 'up')}
+                              disabled={index === 0}
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn" 
+                              title="Descendre" 
+                              onClick={() => handleMoveParcours(item._id, 'formation', 'down')}
+                              disabled={index === formations.length - 1}
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--edit" 
+                              title="Modifier" 
+                              onClick={() => handleOpenParcoursForm(item, 'formation')}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button 
+                              className="admin-action-btn admin-action-btn--delete" 
+                              title="Supprimer" 
+                              onClick={() => handleDeleteParcours(item._id)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
           </div>
         )}
 
-        {/* FORMULAIRE PARCOURS */}
+        {/* ============================================================
+            FORMULAIRE PARCOURS (AJOUT / MODIFICATION)
+            ============================================================ */}
         {activeTab === 'parcours' && isParcoursFormOpen && (
-          <div className="admin-content animate-fade-up">
-            <div className="admin-content__header">
-              <h2>{editingParcours ? 'Modifier' : 'Ajouter'} {parcoursType === 'experience' ? 'une expérience' : 'une formation'}</h2>
-              <button className="btn btn-outline" onClick={handleCloseParcoursForm}>
-                <X size={16} />
-                Annuler
+          <div className="admin-card-panel animate-fade-up">
+            <div className="admin-panel__header">
+              <div>
+                <h2>{editingParcours ? 'Modifier' : 'Ajouter'} {parcoursType === 'experience' ? 'une expérience' : 'une formation'}</h2>
+                <p className="admin-panel__sub">Renseignez les détails du parcours.</p>
+              </div>
+              <button className="btn btn-secondary" onClick={handleCloseParcoursForm}>
+                <X size={15} />
+                <span>Fermer</span>
               </button>
             </div>
 
             <form className="admin-form" onSubmit={handleSaveParcours}>
               <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label">Période *</label>
-                  <input type="text" name="periode" className="form-input" placeholder="Ex: 2024 – PRÉSENT" value={parcoursFormData.periode} onChange={handleParcoursInputChange} required />
+                  <label className="form-label">Période <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="periode" 
+                    className="form-input" 
+                    placeholder="Ex: 2024 – PRÉSENT" 
+                    value={parcoursFormData.periode} 
+                    onChange={handleParcoursInputChange} 
+                    required 
+                  />
                 </div>
+
                 <div className="form-group">
-                  <label className="form-label">{parcoursType === 'experience' ? 'Entreprise' : 'Établissement'} *</label>
-                  <input type="text" name="entreprise" className="form-input" value={parcoursFormData.entreprise} onChange={handleParcoursInputChange} required />
+                  <label className="form-label">{parcoursType === 'experience' ? 'Entreprise' : 'Établissement'} <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="entreprise" 
+                    className="form-input" 
+                    placeholder={parcoursType === 'experience' ? "Ex: Agile Way International" : "Ex: Université / École"}
+                    value={parcoursFormData.entreprise} 
+                    onChange={handleParcoursInputChange} 
+                    required 
+                  />
                 </div>
+
                 <div className="form-group">
-                  <label className="form-label">{parcoursType === 'experience' ? 'Poste' : 'Diplôme/Titre'} *</label>
-                  <input type="text" name="poste" className="form-input" value={parcoursFormData.poste} onChange={handleParcoursInputChange} required />
+                  <label className="form-label">{parcoursType === 'experience' ? 'Poste' : 'Diplôme / Titre'} <span className="req">*</span></label>
+                  <input 
+                    type="text" 
+                    name="poste" 
+                    className="form-input" 
+                    placeholder={parcoursType === 'experience' ? "Ex: Lead UX/UI Designer" : "Ex: Master Informatique & Design"}
+                    value={parcoursFormData.poste} 
+                    onChange={handleParcoursInputChange} 
+                    required 
+                  />
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Description *</label>
-                <textarea name="description" className="form-textarea" value={parcoursFormData.description} onChange={handleParcoursInputChange} required />
+                <label className="form-label">Description <span className="req">*</span></label>
+                <textarea 
+                  name="description" 
+                  className="form-textarea" 
+                  rows={4}
+                  placeholder="Détaillez les réalisations et responsabilités clés..."
+                  value={parcoursFormData.description} 
+                  onChange={handleParcoursInputChange} 
+                  required 
+                />
               </div>
 
-              <div className="form-actions">
+              <div className="form-actions-bar">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseParcoursForm}>
+                  Annuler
+                </button>
                 <button type="submit" className="btn btn-primary">
                   <Save size={16} />
-                  Enregistrer
+                  <span>Enregistrer</span>
                 </button>
               </div>
             </form>
           </div>
         )}
+
       </div>
 
-      {/* CROPPER MODAL */}
+      {/* ============================================================
+          CROPPER MODAL (MODERNE)
+          ============================================================ */}
       {isCropperOpen && imageSrc && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ position: 'relative', width: '90%', height: '70%', background: '#333' }}>
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={16 / 9}
-              onCropChange={setCrop}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
-            />
-          </div>
-          <div style={{ marginTop: '20px', display: 'flex', gap: '15px' }}>
-            <button className="btn btn-outline" onClick={() => {
-              setIsCropperOpen(false)
-              setImageSrc(null)
-            }}>Annuler</button>
-            <button className="btn btn-primary" onClick={showCroppedImage}>
-              <Crop size={16} /> Recadrer l'image
-            </button>
+        <div className="admin-cropper-modal-overlay">
+          <div className="admin-cropper-modal-card">
+            <div className="admin-cropper-modal-header">
+              <h3>Recadrer l'image du projet (Ratio 16:9 / 16:10)</h3>
+              <button 
+                className="admin-cropper-close" 
+                onClick={() => {
+                  setIsCropperOpen(false)
+                  setImageSrc(null)
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="admin-cropper-canvas-area">
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={16 / 10}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            <div className="admin-cropper-modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  setIsCropperOpen(false)
+                  setImageSrc(null)
+                }}
+              >
+                Annuler
+              </button>
+              <button className="btn btn-primary" onClick={showCroppedImage}>
+                <Crop size={16} />
+                <span>Valider le recadrage</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

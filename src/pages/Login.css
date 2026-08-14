@@ -3,41 +3,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg);
-  padding: var(--space-4);
+  background-color: var(--color-bg, #F8FAFC);
+  padding: calc(var(--nav-height, 72px) + 24px) 20px 48px 20px;
 }
 
 .login-card {
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  padding: var(--space-8);
-  border-radius: 4px;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border, #E4E7EC);
+  padding: 40px 36px;
+  border-radius: 20px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: var(--shadow-lg);
+  max-width: 420px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.06);
 }
 
 .login-card__header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: 28px;
 }
 
 .login-card__header h2 {
-  font-family: var(--font-title);
-  font-size: 1.8rem;
-  color: var(--color-text);
-  margin: var(--space-2) 0;
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-main, #101828);
+  margin: 8px 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .login-card__header p {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  color: var(--color-text-sec, #667085);
+  font-size: 14px;
+  margin: 0;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .input-with-icon {
@@ -48,26 +51,41 @@
 
 .input-icon {
   position: absolute;
-  left: var(--space-3);
-  color: var(--color-text-muted);
+  left: 14px;
+  color: #94A3B8;
   pointer-events: none;
 }
 
 .input-with-icon .form-input {
-  padding-left: calc(var(--space-3) + 24px);
+  width: 100%;
+  padding: 11px 14px 11px 42px;
+  background: #FFFFFF;
+  border: 1px solid #D0D5DD;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #101828;
+  transition: all 150ms ease;
+}
+
+.input-with-icon .form-input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .login-error {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  padding: var(--space-3);
-  border-radius: 4px;
-  font-size: 0.9rem;
+  background-color: #FFF1F2;
+  color: #E11D48;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
   text-align: center;
-  border: 1px solid rgba(220, 53, 69, 0.2);
+  border: 1px solid #FECDD3;
 }
 
 .btn-block {
   width: 100%;
   justify-content: center;
+  margin-top: 6px;
 }
