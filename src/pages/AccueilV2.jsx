@@ -170,7 +170,7 @@ export default function AccueilV2() {
             </motion.h1>
             
             <motion.p className="v2-hero__desc-main" variants={fadeUp}>
-              UX/UI Designer depuis 2018, j’accompagne les équipes dans la conception de parcours, de tableaux de bord et de plateformes métier, de la compréhension du besoin jusqu’aux maquettes haute fidélité.
+              Dans le milieu professionnel depuis 2018, j’accompagne les équipes dans la conception de parcours, de tableaux de bord et de plateformes métier, de la compréhension du besoin jusqu’aux maquettes haute fidélité.
             </motion.p>
             
             <motion.p className="v2-hero__desc-sub" variants={fadeUp}>

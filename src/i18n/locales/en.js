@@ -104,7 +104,7 @@ export default {
       locationLabel: 'Location',
       locationValue: 'Dakar, Senegal',
       expLabel: 'Experience',
-      expValue: 'UX/UI Design since 2018',
+      expValue: 'In the professional field since 2018',
       modeLabel: 'Work Mode',
       modeValue: 'Full Remote & On-site',
       domainsLabel: 'Domains',
