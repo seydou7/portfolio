@@ -8,6 +8,7 @@ import { experiences as staticExperiences } from '../data/parcours'
 import { translateArray } from '../i18n/autoTranslate'
 import API_URL from '../config/api'
 import ProjectCard from '../components/ProjectCard'
+import HeroInteractiveVisual from '../components/HeroInteractiveVisual'
 import './AccueilV2.css'
 
 /* ============================================================
@@ -194,13 +195,7 @@ export default function AccueilV2() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="v2-hero__visual-frame">
-              <img 
-                src="/hero_showcase.png" 
-                alt="Aperçu d'une interface produit et design system de Seydou Diallo" 
-                loading="eager" 
-              />
-            </div>
+            <HeroInteractiveVisual />
           </motion.div>
           
         </div>

@@ -82,26 +82,9 @@
 
 .v2-hero__visual {
   width: 100%;
-}
-
-.v2-hero__visual-frame {
-  background-color: var(--color-blue-light);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.v2-hero__visual-frame img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 @media (max-width: 1280px) {
