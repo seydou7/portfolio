@@ -4,6 +4,7 @@ import { ArrowRight, Mail, Phone, Link2, Monitor, Globe, Code, Palette, MapPin }
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { projets as staticProjets } from '../data/projets'
+import { experiences as staticExperiences } from '../data/parcours'
 import { translateArray } from '../i18n/autoTranslate'
 import API_URL from '../config/api'
 import ProjectCard from '../components/ProjectCard'
@@ -34,7 +35,11 @@ export default function AccueilV2() {
   const [translatedProjets, setTranslatedProjets] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Chargement 100% dynamique depuis l'API avec fallback transparent
+  const [experiences, setExperiences] = useState([])
+  const [translatedExp, setTranslatedExp] = useState([])
+  const [expLoading, setExpLoading] = useState(true)
+
+  // Chargement 100% dynamique des projets depuis l'API avec fallback
   useEffect(() => {
     let isMounted = true
     setLoading(true)
@@ -65,7 +70,38 @@ export default function AccueilV2() {
     }
   }, [])
 
-  // Auto-traduction dynamique i18n
+  // Chargement 100% dynamique du parcours depuis l'API avec fallback
+  useEffect(() => {
+    let isMounted = true
+    setExpLoading(true)
+
+    fetch(`${API_URL}/api/parcours`)
+      .then(res => {
+        if (!res.ok) throw new Error('API non disponible')
+        return res.json()
+      })
+      .then(data => {
+        if (!isMounted) return
+        if (Array.isArray(data) && data.length > 0) {
+          setExperiences(data.filter(item => item.type === 'experience'))
+        } else {
+          setExperiences(staticExperiences)
+        }
+        setExpLoading(false)
+      })
+      .catch(err => {
+        if (!isMounted) return
+        console.warn('Fallback sur le parcours local :', err.message)
+        setExperiences(staticExperiences)
+        setExpLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  // Auto-traduction dynamique i18n pour les projets
   useEffect(() => {
     if (projets.length === 0) return
     const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
@@ -74,9 +110,31 @@ export default function AccueilV2() {
       .catch(() => setTranslatedProjets([]))
   }, [projets, i18n.language])
 
+  // Auto-traduction dynamique i18n pour le parcours
+  useEffect(() => {
+    if (experiences.length === 0) return
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
+    translateArray(experiences, ['description', 'poste', 'entreprise'], lang)
+      .then(setTranslatedExp)
+      .catch(() => setTranslatedExp([]))
+  }, [experiences, i18n.language])
+
   const displayedProjets = translatedProjets.length > 0 ? translatedProjets : projets
   const homeProjets = displayedProjets.filter(p => p.showInHome)
   const selectedProjets = homeProjets.length > 0 ? homeProjets.slice(0, 3) : displayedProjets.slice(0, 3)
+
+  const displayedExp = translatedExp.length > 0 ? translatedExp : experiences
+  const topExperiences = displayedExp.slice(0, 3)
+
+  // Extraction dynamique des partenaires / organisations
+  const partnerLogos = Array.from(
+    new Set([
+      ...experiences.map(e => e.entreprise).filter(Boolean),
+      'CETUD',
+      'CORAF',
+      'Trésor Public'
+    ])
+  ).slice(0, 6)
 
   // Méthode de travail
   const methodes = [
@@ -84,13 +142,6 @@ export default function AccueilV2() {
     { num: '02', titre: 'Structurer', texte: 'Organiser l’information, définir les parcours et prioriser les fonctionnalités importantes.' },
     { num: '03', titre: 'Concevoir', texte: 'Explorer les solutions, produire les wireframes, les prototypes et les interfaces haute fidélité.' },
     { num: '04', titre: 'Accompagner', texte: 'Préparer le handoff, collaborer avec les développeurs et vérifier la qualité de l’intégration.' }
-  ]
-
-  // Parcours
-  const parcours = [
-    { periode: 'Depuis 2018', role: 'UX/UI Designer & Front-end', org: 'Freelance / Remote', desc: 'Accompagnement de startups et d\'institutions sur des produits web complexes (Fintech, Edtech, Secteur public).' },
-    { periode: '2021 - 2023', role: 'Product Designer', org: 'YUX Design', desc: 'Recherche utilisateur, prototypage et développement de plateformes web pour l\'Afrique.' },
-    { periode: '2019 - 2021', role: 'Web Designer & Intégrateur', org: 'Agences Digitales', desc: 'Conception et intégration de sites vitrines et corporate.' }
   ]
 
   return (
@@ -144,7 +195,11 @@ export default function AccueilV2() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <div className="v2-hero__visual-frame">
-              <img src="/portfolio_project_mockup.png" alt="Exemple d'interface de tableau de bord" loading="eager" />
+              <img 
+                src="/hero_showcase.png" 
+                alt="Aperçu d'une interface produit et design system de Seydou Diallo" 
+                loading="eager" 
+              />
             </div>
           </motion.div>
           
@@ -291,19 +346,32 @@ export default function AccueilV2() {
           </div>
 
           <div className="v2-parcours__list">
-            {parcours.map((p, index) => (
-              <motion.div 
-                className="v2-parcours-item" key={index}
-                initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
-              >
-                <div className="v2-parcours-item__period">{p.periode}</div>
-                <div className="v2-parcours-item__content">
-                  <h3 className="v2-parcours-item__role">{p.role}</h3>
-                  <span className="v2-parcours-item__org">{p.org}</span>
-                  <p className="v2-parcours-item__desc">{p.desc}</p>
+            {expLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="v2-parcours-item v2-parcours-item--skeleton" style={{ opacity: 0.7 }}>
+                  <div style={{ width: '120px', height: '18px', background: '#E2E8F0', borderRadius: '4px', marginBottom: '8px' }} />
+                  <div className="v2-parcours-item__content">
+                    <div style={{ width: '65%', height: '22px', background: '#E2E8F0', borderRadius: '4px', marginBottom: '8px' }} />
+                    <div style={{ width: '40%', height: '16px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '12px' }} />
+                    <div style={{ width: '90%', height: '14px', background: '#F1F5F9', borderRadius: '4px' }} />
+                  </div>
                 </div>
-              </motion.div>
-            ))}
+              ))
+            ) : (
+              topExperiences.map((p, index) => (
+                <motion.div 
+                  className="v2-parcours-item" key={p.id || index}
+                  initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
+                >
+                  <div className="v2-parcours-item__period">{p.periode}</div>
+                  <div className="v2-parcours-item__content">
+                    <h3 className="v2-parcours-item__role">{p.poste}</h3>
+                    <span className="v2-parcours-item__org">{p.entreprise}</span>
+                    <p className="v2-parcours-item__desc">{p.description}</p>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
           
           <div className="v2-parcours__more">
@@ -313,12 +381,9 @@ export default function AccueilV2() {
           <div className="v2-logos">
             <h3 className="v2-logos__title">Organisations et équipes avec lesquelles j’ai collaboré</h3>
             <div className="v2-logos__grid">
-              {/* Using text for logos to avoid broken images if not available, as per strict instruction: "Réutiliser uniquement les logos existants et vérifiables." */}
-              <span className="v2-logo-placeholder">CORAF</span>
-              <span className="v2-logo-placeholder">CETUD</span>
-              <span className="v2-logo-placeholder">LiveLearn</span>
-              <span className="v2-logo-placeholder">Trésor Public</span>
-              <span className="v2-logo-placeholder">YUX Design</span>
+              {partnerLogos.map((org) => (
+                <span key={org} className="v2-logo-placeholder">{org}</span>
+              ))}
             </div>
           </div>
         </div>
