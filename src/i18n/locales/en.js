@@ -181,13 +181,16 @@ export default {
     ctaSecondary: 'Download my CV',
   },
   parcours: {
-    label: 'EXPERIENCE',
-    title: 'My Career',
-    subtitle: 'ONE CLEAR DIRECTION: DESIGN AND DELIVER EXCEPTIONAL PRODUCTS.',
-    expLabel: 'EXPERIENCE',
-    expTitle: 'An international journey',
-    formLabel: 'EDUCATION',
-    formTitle: 'Academic & self-taught foundation',
+    seoTitle: 'Career — Seydou Diallo | UX/UI Designer',
+    seoDesc: 'Discover the career journey and experience of Seydou Diallo: UX/UI design of enterprise platforms, design systems, and front-end integration.',
+    label: 'CAREER & COLLABORATIONS',
+    title: 'A practice forged through complex digital products',
+    subtitle: 'Since 2018, I have been designing institutional platforms, business applications, educational products, and international web services.',
+    expLabel: 'PROFESSIONAL EXPERIENCE',
+    expTitle: 'Career Path & Collaborations',
+    countriesLabel: 'Markets & Countries',
+    ctaContact: 'Discuss an opportunity',
+    ctaCV: 'Download my CV'
   },
   contact: {
     label: 'CONTACT',

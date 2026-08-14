@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LanguageModal from './components/LanguageModal'
+import ScrollToTop from './components/ScrollToTop'
 import AccueilV2 from './pages/AccueilV2'
 import Accueil from './pages/Accueil'
 import Parcours from './pages/Parcours'
@@ -36,6 +37,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <TrackingHandler />
       {showLangModal && (
         <LanguageModal onClose={() => setShowLangModal(false)} />

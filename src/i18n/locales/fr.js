@@ -181,13 +181,16 @@ export default {
     ctaSecondary: 'Télécharger mon CV',
   },
   parcours: {
-    label: 'EXPÉRIENCE',
-    title: 'Mon Parcours',
-    subtitle: 'UNE LIGNE DIRECTRICE CLAIRE: CONCEVOIR ET LIVRER DES PRODUITS D\'EXCEPTION.',
-    expLabel: 'EXPÉRIENCE',
-    expTitle: 'Une trajectoire internationale',
-    formLabel: 'FORMATION',
-    formTitle: 'Socle académique et autodidacte',
+    seoTitle: 'Parcours — Seydou Diallo | UX/UI Designer',
+    seoDesc: 'Découvrez le parcours professionnel et les collaborations de Seydou Diallo : conception UX/UI de plateformes métier, design systems et intégration front-end.',
+    label: 'PARCOURS & COLLABORATIONS',
+    title: 'Une pratique forgée au contact de produits complexes',
+    subtitle: 'Depuis 2018, j’interviens sur des plateformes institutionnelles, des applications métier, des produits éducatifs et des services web à l’international.',
+    expLabel: 'EXPÉRIENCES PROFESSIONNELLES',
+    expTitle: 'Trajectoire & Collaborations',
+    countriesLabel: 'Marchés d’intervention',
+    ctaContact: 'Discuter d’une opportunité',
+    ctaCV: 'Télécharger mon CV'
   },
   contact: {
     label: 'CONTACT',

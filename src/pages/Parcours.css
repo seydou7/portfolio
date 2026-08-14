@@ -1,230 +1,310 @@
-/* Main Layout */
-.page-parcours-editorial {
-  padding-bottom: var(--space-32);
-  background-color: var(--color-bg);
+/* ============================================================
+   PARCOURS PAGE — DESIGN SYSTEM
+   ============================================================ */
+
+.page-parcours {
+  background-color: var(--color-bg, #F8FAFC);
   min-height: 100vh;
+  padding-bottom: 80px;
 }
 
-.parcours-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-6);
+/* ===== 1. HERO ===== */
+.parcours-hero {
+  padding-top: calc(var(--nav-height, 72px) + 48px);
+  padding-bottom: 48px;
+  background: var(--color-bg, #F8FAFC);
+  border-bottom: 1px solid var(--color-border, #E4E7EC);
+  margin-bottom: 56px;
 }
 
-/* Bloc Pays */
-.countries-block {
-  margin-bottom: var(--space-20);
-  padding: var(--space-6);
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+.parcours-hero__title {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(32px, 4.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text-main, #101828);
+  letter-spacing: -0.025em;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  max-width: 900px;
 }
 
-.countries-list {
+.parcours-hero__desc {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--color-text-sec, #667085);
+  max-width: 780px;
+  margin-bottom: 28px;
+}
+
+/* Marchés d'intervention */
+.parcours-countries {
   display: flex;
-  justify-content: center;
-  gap: var(--space-4);
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid rgba(228, 231, 236, 0.8);
+}
+
+.parcours-countries__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-sec, #667085);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.parcours-countries__list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.country-item {
-  display: flex;
+.country-chip {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
+  gap: 6px;
+  padding: 6px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border, #E4E7EC);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 13px;
   font-weight: 500;
-  color: var(--color-secondary);
-  transition: all var(--transition-base);
+  color: var(--color-text-main, #101828);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.country-item:hover {
-  border-color: var(--color-gold);
-  color: var(--color-gold);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+.country-chip:hover {
+  transform: translateY(-1px);
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.06);
 }
 
 .country-flag {
-  font-size: 1.2rem;
+  font-size: 14px;
 }
 
-/* Timeline Section Headers */
-.timeline-section {
-  margin-bottom: var(--space-32);
+/* ===== 2. TIMELINE SECTION ===== */
+.parcours-timeline-section {
+  margin-bottom: 72px;
 }
 
-.timeline-section__header {
-  text-align: center;
-  margin-bottom: var(--space-20);
+.parcours-section-header {
+  margin-bottom: 40px;
 }
 
-.timeline-section__title {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-style: italic;
-  color: var(--color-primary);
-  margin-top: var(--space-4);
+.parcours-section-header h2 {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-main, #101828);
+  margin-top: 6px;
 }
 
-/* Timeline Core Structure */
-.timeline-wrapper {
+.parcours-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 860px;
+}
+
+/* Carte de parcours */
+.parcours-card {
   position: relative;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--space-10) 0;
+  display: flex;
+  gap: 24px;
 }
 
-.timeline-center-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background-color: rgba(202, 138, 4, 0.3); /* Subtle gold line */
-  transform: translateX(-50%);
-  z-index: 1;
+/* Timeline Indicator */
+.parcours-card__indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  padding-top: 24px;
 }
 
-/* Timeline Blocks */
-.timeline-block {
-  position: relative;
-  width: 50%;
-  margin-bottom: var(--space-24);
+.parcours-card__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-blue-main, #2563EB);
+  border: 3px solid #EFF6FF;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0;
   z-index: 2;
 }
 
-.timeline-block:last-child {
-  margin-bottom: 0;
+.parcours-card__line {
+  width: 2px;
+  flex-grow: 1;
+  background: #E2E8F0;
+  margin-top: 8px;
+  margin-bottom: -24px;
 }
 
-/* Left Side Items */
-.timeline-block--left {
-  left: 0;
-  text-align: right;
-  padding-right: var(--space-16);
+/* Contenu de la carte */
+.parcours-card__content {
+  flex-grow: 1;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border, #E4E7EC);
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.04);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 
-/* Right Side Items */
-.timeline-block--right {
-  left: 50%;
-  text-align: left;
-  padding-left: var(--space-16);
+.parcours-card__content:hover {
+  transform: translateY(-2px);
+  border-color: #CBD5E1;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.07);
 }
 
-/* Timeline Dots */
-.timeline-dot {
-  position: absolute;
-  top: 6px;
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-gold);
-  transform: rotate(45deg);
+.parcours-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.timeline-block--left .timeline-dot {
-  right: -4px; /* Center on line */
-}
-
-.timeline-block--right .timeline-dot {
-  left: -4px; /* Center on line */
-}
-
-/* Timeline Content Styling */
-.timeline-date {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-gold);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: var(--space-3);
-}
-
-.timeline-company {
-  font-family: var(--font-heading);
-  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
-  font-style: italic;
-  color: var(--color-primary);
-  line-height: 1.2;
-  margin-bottom: var(--space-3);
-}
-
-.timeline-role {
-  display: block;
-  font-size: 10px;
+.parcours-card__period {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin-bottom: var(--space-6);
+  color: var(--color-blue-main, #2563EB);
+  background: var(--color-blue-light, #EFF6FF);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
 }
 
-.timeline-desc {
-  font-size: var(--fs-sm);
-  color: var(--color-secondary);
-  line-height: 1.7;
+.parcours-card__location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-sec, #667085);
 }
 
-/* Left/Right specific overrides */
-.timeline-block--left .timeline-content {
-  margin-left: auto;
+.parcours-card__role {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-main, #101828);
+  margin-bottom: 6px;
 }
 
-/* Scroll Reveal */
-.reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1);
+.parcours-card__company {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-sec, #667085);
+  margin-bottom: 14px;
 }
 
-.reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
+.parcours-card__desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-text-sec, #667085);
+  margin: 0;
 }
 
-/* Responsive Tablet & Mobile */
-@media (max-width: 900px) {
-  .timeline-wrapper {
-    padding-left: var(--space-6);
-  }
-
-  .timeline-center-line {
-    left: 0;
-    transform: none;
-  }
-
-  .timeline-block {
-    width: 100%;
-    margin-bottom: var(--space-16);
-  }
-
-  /* Force everything to the right side of the line */
-  .timeline-block--left,
-  .timeline-block--right {
-    left: 0;
-    text-align: left;
-    padding-left: var(--space-10);
-    padding-right: 0;
-  }
-
-  .timeline-block--left .timeline-dot,
-  .timeline-block--right .timeline-dot {
-    left: -4px;
-    right: auto;
-  }
+/* Skeletons */
+.parcours-card-skeleton {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border, #E4E7EC);
+  border-radius: 18px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-@media (max-width: 480px) {
-  .timeline-section__title {
-    font-size: 1.8rem;
+.parcours-skeleton__line {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: parcoursSkeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes parcoursSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.parcours-skeleton__line--date { width: 120px; height: 18px; }
+.parcours-skeleton__line--title { width: 50%; height: 22px; }
+.parcours-skeleton__line--sub { width: 35%; height: 16px; }
+.parcours-skeleton__line--desc { width: 90%; height: 14px; }
+
+/* ===== 3. CTA FINAL ===== */
+.parcours-cta-section {
+  padding-top: 16px;
+}
+
+.parcours-cta-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border, #E4E7EC);
+  border-radius: 24px;
+  padding: 56px 48px;
+  text-align: center;
+  max-width: 860px;
+  box-shadow: 0 12px 36px rgba(16, 24, 40, 0.05);
+}
+
+.parcours-cta-card h2 {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(24px, 3.5vw, 32px);
+  font-weight: 800;
+  color: var(--color-text-main, #101828);
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+
+.parcours-cta-card p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-sec, #667085);
+  max-width: 620px;
+  margin: 0 auto 32px auto;
+}
+
+.parcours-cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .parcours-hero {
+    padding-top: calc(var(--nav-height, 72px) + 32px);
+    padding-bottom: 36px;
+    margin-bottom: 40px;
   }
-  
-  .timeline-company {
-    font-size: 1.5rem;
+  .parcours-hero__title {
+    font-size: 30px;
+  }
+  .parcours-hero__desc {
+    font-size: 16px;
+  }
+  .parcours-card {
+    gap: 14px;
+  }
+  .parcours-card__content {
+    padding: 20px;
+  }
+  .parcours-cta-card {
+    padding: 36px 24px;
   }
 }
