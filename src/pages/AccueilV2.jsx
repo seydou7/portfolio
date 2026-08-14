@@ -1,8 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Mail, Phone, Link2, Monitor, Globe, Code, Palette, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
+import { projets as staticProjets } from '../data/projets'
+import { translateArray } from '../i18n/autoTranslate'
+import API_URL from '../config/api'
+import ProjectCard from '../components/ProjectCard'
 import './AccueilV2.css'
 
 /* ============================================================
@@ -25,37 +29,54 @@ const staggerContainer = {
    MAIN PAGE
    ============================================================ */
 export default function AccueilV2() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const [projets, setProjets] = useState([])
+  const [translatedProjets, setTranslatedProjets] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const projets = [
-    {
-      id: 'ndymbel',
-      org: 'CETUD',
-      nom: 'Ndimbël — Tarifs Sociaux',
-      description: 'Conception d’une plateforme multi-profils destinée à gérer les demandes, l’évaluation des bénéficiaires et la production des cartes de transport social.',
-      tags: ['UX Design', 'UI Design', 'Dashboard', 'Design system'],
-      infos: 'Plateforme institutionnelle · Parcours multi-rôles',
-      key: 'cetud'
-    },
-    {
-      id: 'etpe',
-      org: 'Trésor Public',
-      nom: 'eTPE — Gestion des pièces comptables',
-      description: 'Conception d’un outil métier permettant de centraliser, contrôler et transmettre les pièces comptables des postes diplomatiques et consulaires.',
-      tags: ['Product Design', 'UX Architecture', 'Data tables', 'Prototypage'],
-      infos: 'Produit métier · Processus administratifs complexes',
-      key: 'etpe'
-    },
-    {
-      id: 'livelearn',
-      org: 'LiveLearn',
-      nom: 'LiveLearn — Plateforme e-learning',
-      description: 'Refonte de l’expérience et des interfaces d’une plateforme de formation en ligne, avec adaptation responsive et accompagnement de l’intégration front-end.',
-      tags: ['UX/UI', 'Responsive', 'E-learning', 'Front-end'],
-      infos: 'Plateforme web · Refonte d’expérience',
-      key: 'livelearn'
+  // Chargement 100% dynamique depuis l'API avec fallback transparent
+  useEffect(() => {
+    let isMounted = true
+    setLoading(true)
+
+    fetch(`${API_URL}/api/projets`)
+      .then(res => {
+        if (!res.ok) throw new Error('API non disponible')
+        return res.json()
+      })
+      .then(data => {
+        if (!isMounted) return
+        if (Array.isArray(data) && data.length > 0) {
+          setProjets(data)
+        } else {
+          setProjets(staticProjets)
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        if (!isMounted) return
+        console.warn('Fallback sur les données locales :', err.message)
+        setProjets(staticProjets)
+        setLoading(false)
+      })
+
+    return () => {
+      isMounted = false
     }
-  ]
+  }, [])
+
+  // Auto-traduction dynamique i18n
+  useEffect(() => {
+    if (projets.length === 0) return
+    const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
+    translateArray(projets, ['description', 'type'], lang)
+      .then(setTranslatedProjets)
+      .catch(() => setTranslatedProjets([]))
+  }, [projets, i18n.language])
+
+  const displayedProjets = translatedProjets.length > 0 ? translatedProjets : projets
+  const homeProjets = displayedProjets.filter(p => p.showInHome)
+  const selectedProjets = homeProjets.length > 0 ? homeProjets.slice(0, 3) : displayedProjets.slice(0, 3)
 
   // Méthode de travail
   const methodes = [
@@ -164,37 +185,22 @@ export default function AccueilV2() {
           </div>
 
           <div className="v2-projects__list">
-            {projets.map((projet) => (
-              <motion.div 
-                className="v2-project-card"
-                key={projet.id}
-                initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-50px' }} variants={fadeUp}
-              >
-                <Link to={`/projet/${projet.id}`} className="v2-project-card__visual">
-                  <div className={`v2-project-card__placeholder v2-project-card__placeholder--${projet.key}`}>
-                    {projet.nom.split(' — ')[0]}
-                  </div>
-                </Link>
-                
-                <div className="v2-project-card__content">
-                  <span className="v2-project-card__org">{projet.org}</span>
-                  <h3 className="v2-project-card__title">{projet.nom}</h3>
-                  <p className="v2-project-card__desc">{projet.description}</p>
-                  
-                  <div className="v2-project-card__tags">
-                    {projet.tags.map(tag => <span key={tag} className="v2-project-card__tag">{tag}</span>)}
-                  </div>
-                  
-                  <p className="v2-project-card__infos">{projet.infos}</p>
-                  
-                  <div className="v2-project-card__cta">
-                    <Link to={`/projet/${projet.id}`} className="text-link">
-                      Voir l’étude de cas <ArrowRight size={16} />
-                    </Link>
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="project-card-skeleton" aria-hidden="true">
+                  <div className="project-card-skeleton__media" />
+                  <div className="project-card-skeleton__body">
+                    <div className="project-card-skeleton__line project-card-skeleton__line--short" />
+                    <div className="project-card-skeleton__line project-card-skeleton__line--title" />
+                    <div className="project-card-skeleton__line project-card-skeleton__line--desc" />
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              ))
+            ) : (
+              selectedProjets.map((projet) => (
+                <ProjectCard key={projet.id} project={projet} />
+              ))
+            )}
           </div>
           
           <div className="v2-projects__more">
